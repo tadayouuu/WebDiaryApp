@@ -1,0 +1,23 @@
+﻿@model WebDiaryApp.Models.DiaryEntry
+
+<h1>新規日記作成</h1>
+
+<form asp-action="Create" method="post" class="needs-validation" novalidate>
+    <div class="mb-3">
+        <label asp-for="Date" class="form-label"></label>
+        <input asp-for="Date" type="date" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label asp-for="Title" class="form-label"></label>
+        <input asp-for="Title" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label asp-for="Tag" class="form-label"></label>
+        <input asp-for="Tag" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label asp-for="Content" class="form-label"></label>
+        <textarea asp-for="Content" class="form-control" rows="5"></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">登録</button>
+</form>

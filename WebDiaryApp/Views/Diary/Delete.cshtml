@@ -1,0 +1,18 @@
+﻿@model WebDiaryApp.Models.DiaryEntry
+
+<h1>日記削除確認</h1>
+
+<p>本当にこの日記を削除しますか？</p>
+
+<div>
+    <h4>@Model.Title</h4>
+    <p>@Model.Date?.ToString("yyyy-MM-dd")</p>
+    <p>@Model.Tag</p>
+    <p>@Model.Content</p>
+</div>
+
+<form asp-action="Delete" method="post" class="needs-validation" novalidate>
+    <input type="hidden" asp-for="Id" />
+    <button type="submit" class="btn btn-danger">削除</button>
+    <a asp-action="Index" class="btn btn-secondary">キャンセル</a>
+</form>
