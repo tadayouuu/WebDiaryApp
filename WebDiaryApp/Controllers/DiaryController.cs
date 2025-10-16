@@ -79,5 +79,16 @@ namespace WebDiaryApp.Controllers
 			}
 			return RedirectToAction(nameof(Index));
 		}
+
+		public async Task<IActionResult> Details(int id)
+		{
+			var entry = await _context.DiaryEntries
+				.FirstOrDefaultAsync(d => d.Id == id);
+
+			if (entry == null)
+				return NotFound();
+
+			return View(entry);
+		}
 	}
 }

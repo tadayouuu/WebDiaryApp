@@ -1,0 +1,25 @@
+﻿@model WebDiaryApp.Models.DiaryEntry
+
+<h1>日記表示</h1>
+
+<div class="mb-3">
+    <label class="form-label"><strong>日付</strong></label>
+    <input class="form-control" value="@Model.Date?.ToString("yyyy-MM-dd")" readonly />
+</div>
+
+<div class="mb-3">
+    <label class="form-label"><strong>タイトル</strong></label>
+    <input class="form-control" value="@Model.Title" readonly />
+</div>
+
+<div class="mb-3">
+    <label class="form-label"><strong>タグ</strong></label>
+    <input class="form-control" value="@Model.Tag" readonly />
+</div>
+
+<div class="mb-3">
+    <label class="form-label"><strong>内容</strong></label>
+    <textarea class="form-control" rows="10" readonly>@Model.Content</textarea>
+</div>
+
+<a asp-action="Index" class="btn btn-secondary">一覧に戻る</a>
