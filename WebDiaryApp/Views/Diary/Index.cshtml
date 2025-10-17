@@ -4,30 +4,49 @@
 
 <a class="btn btn-success mb-3" asp-action="Create">新規作成</a>
 
-<div class="table-responsive">
-    <table class="table table-striped table-hover">
-        <thead class="table-light">
-            <tr>
-                <th>日付</th>
-                <th>タイトル</th>
-                <th>タグ</th>
-                <th>操作</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var item in Model)
-            {
-                <tr>
-                    <td>@item.Date?.ToString("yyyy-MM-dd")</td>
-                    <td>@item.Title</td>
-                    <td>@item.Tag</td>
-                    <td>
-                        <a class="btn btn-sm btn-info me-1" asp-action="Details" asp-route-id="@item.Id">表示</a>
-                        <a class="btn btn-sm btn-primary me-1" asp-action="Edit" asp-route-id="@item.Id">編集</a>
-                        <a class="btn btn-sm btn-danger" asp-action="Delete" asp-route-id="@item.Id">削除</a>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
+<div class="row row-cols-1 g-3">
+
+    @foreach (var item in Model.OrderByDescending(d => d.Date))
+    {
+        <div class="col">
+            <div class="card shadow-sm diary-card" data-id="@item.Id" style="cursor:pointer;">
+
+                <!-- 表示部分 -->
+                <div class="card-body summary">
+                    <h5 class="card-title text-truncate">@item.Title</h5>
+                    <p class="card-text text-truncate">@item.Content</p>
+                    <small class="text-muted">@item.Date?.ToString("yyyy-MM-dd HH:mm")</small>
+                    <div class="badge bg-secondary mt-1">@item.Tag</div>
+                </div>
+
+                <!-- 編集フォーム（初期は非表示） -->
+                <div class="card-body edit-form d-none">
+                    <form asp-action="Edit" method="post">
+                        <input type="hidden" name="Id" value="@item.Id" />
+                        <input class="form-control mb-2" name="Title" value="@item.Title" placeholder="タイトル" />
+                        <textarea class="form-control mb-2" name="Content" rows="4">@item.Content</textarea>
+                        <input class="form-control mb-2" name="Tag" value="@item.Tag" placeholder="タグ" />
+                        <button type="submit" class="btn btn-primary btn-sm">更新</button>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    }
 </div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('.diary-card').click(function (e) {
+                // クリック対象がフォーム内のボタンや入力なら無視
+                if ($(e.target).closest('form').length) return;
+
+                // summary と edit-form を切り替え
+                var $card = $(this);
+                $card.find('.summary').toggleClass('d-none');
+                $card.find('.edit-form').toggleClass('d-none');
+            });
+        });
+    </script>
+}

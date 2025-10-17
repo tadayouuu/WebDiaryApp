@@ -20,3 +20,15 @@ html {
 body {
   margin-bottom: 60px;
 }
+
+/* hoverでカード色を変える */
+.diary-card:hover {
+    background-color: #f8f9fa;
+}
+
+/* タイトルと本文の文字数制限 */
+.text-truncate {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}

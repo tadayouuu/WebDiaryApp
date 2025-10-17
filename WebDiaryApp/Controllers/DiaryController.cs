@@ -46,18 +46,37 @@ namespace WebDiaryApp.Controllers
 			return View(entry);
 		}
 
+		//[HttpPost]
+		//[ValidateAntiForgeryToken]
+		//public async Task<IActionResult> Edit(int id, DiaryEntry diaryEntry)
+		//{
+		//	if (id != diaryEntry.Id) return BadRequest();
+		//	if (ModelState.IsValid)
+		//	{
+		//		_context.Update(diaryEntry);
+		//		await _context.SaveChangesAsync();
+		//		return RedirectToAction(nameof(Index));
+		//	}
+		//	return View(diaryEntry);
+		//}
+
 		[HttpPost]
 		[ValidateAntiForgeryToken]
-		public async Task<IActionResult> Edit(int id, DiaryEntry diaryEntry)
+		public async Task<IActionResult> Edit(DiaryEntry diaryEntry)
 		{
-			if (id != diaryEntry.Id) return BadRequest();
 			if (ModelState.IsValid)
 			{
-				_context.Update(diaryEntry);
+				var existing = await _context.DiaryEntries.FindAsync(diaryEntry.Id);
+				if (existing == null) return NotFound();
+
+				existing.Title = diaryEntry.Title;
+				existing.Content = diaryEntry.Content;
+				existing.Tag = diaryEntry.Tag;
+
 				await _context.SaveChangesAsync();
-				return RedirectToAction(nameof(Index));
 			}
-			return View(diaryEntry);
+
+			return RedirectToAction(nameof(Index));
 		}
 
 		public async Task<IActionResult> Delete(int id)
