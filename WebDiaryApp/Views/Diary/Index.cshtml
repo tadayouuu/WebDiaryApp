@@ -16,7 +16,7 @@
     @foreach (var item in Model.OrderByDescending(d => d.Date))
     {
         <div class="col">
-            <div class="card shadow-sm diary-card" data-id="@item.Id" style="cursor:pointer;">
+            <div class="card shadow-sm diary-card" data-id="@item.Id">
                 <!-- 表示部分 -->
                 <div class="card-body summary">
                     <h5 class="card-title text-truncate">@item.Title</h5>
@@ -38,12 +38,11 @@
                         </div>
                     </form>
 
-                    <form asp-action="Delete" method="post">
+                    <form asp-action="Delete" method="post" onsubmit="return confirm('本当に削除しますか？');">
                         <input type="hidden" name="id" value="@item.Id" />
                         <button type="submit" class="btn btn-danger btn-sm">削除</button>
                     </form>
                 </div>
-
             </div>
         </div>
     }
@@ -56,9 +55,12 @@
                 if ($(e.target).closest('form').length) return;
 
                 var $clickedCard = $(this);
+
+                // 他のカードを閉じる
                 $('.diary-card').not($clickedCard).find('.summary').removeClass('d-none');
                 $('.diary-card').not($clickedCard).find('.edit-form').addClass('d-none');
 
+                // クリックしたカードだけ切り替え
                 $clickedCard.find('.summary').toggleClass('d-none');
                 $clickedCard.find('.edit-form').toggleClass('d-none');
             });
