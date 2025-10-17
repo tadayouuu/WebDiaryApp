@@ -50,3 +50,8 @@ footer {
     color: #111;
     border: 1px solid #ccc;
 }
+
+.tag-badge.active-tag {
+    background-color: #007bff !important;
+    color: #fff !important;
+}

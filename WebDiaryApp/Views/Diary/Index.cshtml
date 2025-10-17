@@ -22,7 +22,8 @@
                     <h5 class="card-title text-truncate">@item.Title</h5>
                     <p class="card-text text-truncate">@item.Content</p>
                     <small class="text-muted">@item.Date?.ToString("yyyy-MM-dd HH:mm")</small>
-                    <div class="badge bg-secondary mt-1">@item.Tag</div>
+                    @* <div class="badge bg-secondary mt-1">@item.Tag</div> *@
+                    <div class="badge bg-secondary mt-1 tag-badge" data-tag="@item.Tag">@item.Tag</div>
                 </div>
 
                 <!-- 編集フォーム -->
@@ -70,6 +71,29 @@
 
                 $('.diary-card').find('.summary').removeClass('d-none');
                 $('.diary-card').find('.edit-form').addClass('d-none');
+            });
+
+            $('.tag-badge').click(function (e) {
+                e.stopPropagation(); // カードクリックイベントと干渉させない
+                var tag = $(this).data('tag');
+                var isActive = $(this).hasClass('active-tag');
+
+                // 全てのタグのactive解除
+                $('.tag-badge').removeClass('active-tag');
+
+                if (!isActive) {
+                    $(this).addClass('active-tag');
+                    $('.diary-card').each(function () {
+                        if ($(this).find('.tag-badge').data('tag') !== tag) {
+                            $(this).hide();
+                        } else {
+                            $(this).show();
+                        }
+                    });
+                } else {
+                    // もう一度クリックでフィルター解除
+                    $('.diary-card').show();
+                }
             });
 
             setTimeout(function () {
