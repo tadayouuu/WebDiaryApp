@@ -1,4 +1,7 @@
+cat <<EOL > .dockerignore
+.vs/
 bin/
 obj/
-.git/
-.vs/
+*.user
+*.suo
+EOL
