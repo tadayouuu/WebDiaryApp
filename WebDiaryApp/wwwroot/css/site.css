@@ -39,6 +39,7 @@ footer {
     text-overflow: ellipsis;
 }
 
+
 /* ボタン focus */
 .btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
     box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
@@ -64,4 +65,40 @@ footer {
 
 .inline-form {
     margin: 0; /* フォームの余白を消す */
+}
+
+/* ナビバー内のログイン／ログアウト用コンテナ */
+.nav-login-container {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* ボタンと文字の間隔 */
+}
+
+/* ユーザー名表示 */
+.nav-greeting {
+    font-weight: bold;
+}
+
+/* ボタン共通スタイル */
+.nav-btn {
+    padding: 5px 12px;
+    border: 1px solid #007bff;
+    background-color: #007bff;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+/* 2次ボタン（Register など） */
+.nav-btn.secondary {
+    background-color: #f8f9fa;
+    color: #007bff;
+    border: 1px solid #007bff;
+}
+
+/* Logoutフォームをインライン表示 */
+.nav-logout-form {
+    display: inline;
 }
