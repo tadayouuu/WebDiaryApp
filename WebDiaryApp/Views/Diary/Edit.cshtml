@@ -2,7 +2,7 @@
 
 <h1>日記編集</h1>
 
-<form asp-action="Edit" method="post" class="needs-validation" novalidate>
+<form asp-action="Edit" method="post">
     <input type="hidden" asp-for="Id" />
     <div class="mb-3">
         <label asp-for="Date" class="form-label"></label>
@@ -13,8 +13,8 @@
         <input asp-for="Title" class="form-control" />
     </div>
     <div class="mb-3">
-        <label asp-for="Tag" class="form-label"></label>
-        <input asp-for="Tag" class="form-control" />
+        <label asp-for="Category" class="form-label"></label>
+        <input asp-for="Category" class="form-control" />
     </div>
     <div class="mb-3">
         <label asp-for="Content" class="form-label"></label>
