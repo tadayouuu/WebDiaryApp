@@ -2,23 +2,28 @@
 
 <h1>日記編集</h1>
 
-<form asp-action="Edit" method="post">
+<form asp-action="Edit" method="post" class="needs-validation" novalidate>
     <input type="hidden" asp-for="Id" />
+
     <div class="mb-3">
-        <label asp-for="Date" class="form-label"></label>
-        <input asp-for="Date" class="form-control" readonly />
+        <label asp-for="CreatedAt" class="form-label"></label>
+        <input asp-for="CreatedAt" class="form-control" readonly />
     </div>
+
     <div class="mb-3">
         <label asp-for="Title" class="form-label"></label>
         <input asp-for="Title" class="form-control" />
     </div>
+
     <div class="mb-3">
         <label asp-for="Category" class="form-label"></label>
         <input asp-for="Category" class="form-control" />
     </div>
+
     <div class="mb-3">
         <label asp-for="Content" class="form-label"></label>
         <textarea asp-for="Content" class="form-control" rows="5"></textarea>
     </div>
+
     <button type="submit" class="btn btn-primary">保存</button>
 </form>
