@@ -46,6 +46,19 @@
                         <button type="submit" class="btn btn-danger btn-sm">削除</button>
                     </form>
                 </div>
+
+                <!-- プレビュー -->
+                <div class="card-body preview-form d-none">
+                    <h5>@item.Title</h5>
+                    <p>@item.Content</p>
+                    <div class="badge bg-secondary mt-1">@item.Category</div>
+                    <small class="text-muted">@createdAtJst.ToString("yyyy-MM-dd HH:mm")</small>
+                </div>
+
+                <div class="card-body d-flex gap-2 mt-2">
+                    <button type="button" class="btn btn-info btn-sm btn-preview">プレビュー</button>
+                    <button type="button" class="btn btn-primary btn-sm btn-edit">編集</button>
+                </div>
             </div>
         </div>
     }
@@ -65,11 +78,25 @@
                 $clickedCard.find('.edit-form').toggleClass('d-none');
             });
 
+            $('.btn-edit').click(function (e) {
+                e.stopPropagation();
+                var $card = $(this).closest('.diary-card');
+                $card.find('.summary, .preview-form').addClass('d-none');
+                $card.find('.edit-form').removeClass('d-none');
+            });
+
+            $('.btn-preview').click(function (e) {
+                e.stopPropagation();
+                var $card = $(this).closest('.diary-card');
+                $card.find('.summary, .edit-form').addClass('d-none');
+                $card.find('.preview-form').removeClass('d-none');
+            });
+
+            // カード外クリックでリセット
             $(document).click(function (e) {
                 if ($(e.target).closest('.diary-card').length) return;
-
                 $('.diary-card').find('.summary').removeClass('d-none');
-                $('.diary-card').find('.edit-form').addClass('d-none');
+                $('.diary-card').find('.edit-form, .preview-form').addClass('d-none');
             });
 
             $('.category-badge').click(function (e) {

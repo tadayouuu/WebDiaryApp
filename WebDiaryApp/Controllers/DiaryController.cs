@@ -106,6 +106,12 @@ namespace WebDiaryApp.Controllers
 			}
 			return RedirectToAction(nameof(Index));
 		}
+				public IActionResult Preview(int id)
+		{
+			var entry = _context.DiaryEntries.Find(id);
+			if (entry == null) return NotFound();
+			return View(entry); // Preview.cshtml が使われる
+		}
 
 		private bool DiaryEntryExists(int id)
 		{

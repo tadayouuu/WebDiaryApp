@@ -1,0 +1,26 @@
+﻿@model WebDiaryApp.Models.DiaryEntry
+
+<h1>日記プレビュー</h1>
+
+<div class="mb-3">
+    <label class="form-label">作成日時</label>
+    <input class="form-control" value="@TimeZoneInfo.ConvertTimeFromUtc(Model.CreatedAt, TimeZoneInfo.FindSystemTimeZoneById("Tokyo Standard Time")).ToString("yyyy-MM-dd HH:mm")" readonly />
+</div>
+
+<div class="mb-3">
+    <label class="form-label">タイトル</label>
+    <input class="form-control" value="@Model.Title" readonly />
+</div>
+
+<div class="mb-3">
+    <label class="form-label">カテゴリ</label>
+    <input class="form-control" value="@Model.Category" readonly />
+</div>
+
+<div class="mb-3">
+    <label class="form-label">内容</label>
+    <textarea class="form-control" rows="5" readonly>@Model.Content</textarea>
+</div>
+
+<a href="@Url.Action("Edit", "Diary", new { id = Model.Id })" class="btn btn-secondary">編集する</a>
+<a href="@Url.Action("Index", "Diary")" class="btn btn-primary">一覧に戻る</a>
