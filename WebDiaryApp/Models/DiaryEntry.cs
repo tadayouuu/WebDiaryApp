@@ -38,9 +38,11 @@ namespace WebDiaryApp.Models
 			set => _createdAt = value.Kind == DateTimeKind.Utc ? value : value.ToUniversalTime();
 		}
 
+		// 旧 Tag プロパティの代わりに Category として追加
+		public string Category { get; set; } = string.Empty;
+
 		public DiaryEntry()
 		{
-			// 新規作成時は自動で UTC 時刻に
 			_createdAt = DateTime.UtcNow;
 		}
 	}

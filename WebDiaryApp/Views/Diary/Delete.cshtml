@@ -6,8 +6,13 @@
 
 <div>
     <h4>@Model.Title</h4>
-    <p>@Model.Date?.ToString("yyyy-MM-dd")</p>
-    <p>@Model.Tag</p>
+
+    @* 作成日表示（Date → CreatedAt） *@
+    <p>作成日: @Model.CreatedAt.ToString("yyyy-MM-dd")</p>
+
+    @* タグ表示（Tag → Category） *@
+    <p>タグ: @Model.Category</p>
+
     <p>@Model.Content</p>
 </div>
 

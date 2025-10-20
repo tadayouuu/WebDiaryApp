@@ -7,24 +7,18 @@ namespace WebDiaryApp.Controllers
 {
 	public class DiaryController : Controller
 	{
-		//private readonly DiaryContext _context;
-
-		//public DiaryController(DiaryContext context)
-		//{
-		//	_context = context;
-		//}
-
 		private readonly ApplicationDbContext _context;
 
 		public DiaryController(ApplicationDbContext context)
 		{
 			_context = context;
 		}
+
 		// 一覧表示
 		public async Task<IActionResult> Index()
 		{
 			var entries = await _context.DiaryEntries
-				.OrderByDescending(d => d.Date)
+				.OrderByDescending(d => d.CreatedAt)
 				.ToListAsync();
 			return View(entries);
 		}
@@ -38,12 +32,12 @@ namespace WebDiaryApp.Controllers
 		// 新規作成処理
 		[HttpPost]
 		[ValidateAntiForgeryToken]
-		public async Task<IActionResult> Create([Bind("Title,Content,Tag")] DiaryEntry diaryEntry)
+		public async Task<IActionResult> Create([Bind("Title,Content,Category")] DiaryEntry diaryEntry)
 		{
 			if (ModelState.IsValid)
 			{
-				// 日付を自動セット（ユーザー入力無視）
-				diaryEntry.Date = DateTime.Now;
+				// 日付を自動セット（UTC）
+				diaryEntry.CreatedAt = DateTime.UtcNow;
 
 				_context.Add(diaryEntry);
 				await _context.SaveChangesAsync();
@@ -64,7 +58,7 @@ namespace WebDiaryApp.Controllers
 		// 編集処理（カード内フォームから）
 		[HttpPost]
 		[ValidateAntiForgeryToken]
-		public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Content,Tag")] DiaryEntry diaryEntry)
+		public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Content,Category")] DiaryEntry diaryEntry)
 		{
 			if (id != diaryEntry.Id) return NotFound();
 
@@ -78,7 +72,7 @@ namespace WebDiaryApp.Controllers
 
 					existing.Title = diaryEntry.Title;
 					existing.Content = diaryEntry.Content;
-					existing.Tag = diaryEntry.Tag;
+					existing.Category = diaryEntry.Category;
 
 					_context.Update(existing);
 					await _context.SaveChangesAsync();

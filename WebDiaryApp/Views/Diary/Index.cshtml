@@ -13,7 +13,7 @@
 <a class="btn btn-success mb-3" asp-action="Create">新規作成</a>
 
 <div class="row row-cols-1 g-3">
-    @foreach (var item in Model.OrderByDescending(d => d.Date))
+    @foreach (var item in Model.OrderByDescending(d => d.CreatedAt))
     {
         <div class="col">
             <div class="card shadow-sm diary-card" data-id="@item.Id">
@@ -21,9 +21,8 @@
                 <div class="card-body summary">
                     <h5 class="card-title text-truncate">@item.Title</h5>
                     <p class="card-text text-truncate">@item.Content</p>
-                    <small class="text-muted">@item.Date?.ToString("yyyy-MM-dd HH:mm")</small>
-                    @* <div class="badge bg-secondary mt-1">@item.Tag</div> *@
-                    <div class="badge bg-secondary mt-1 tag-badge" data-tag="@item.Tag">@item.Tag</div>
+                    <small class="text-muted">@item.CreatedAt?.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</small>
+                    <div class="badge bg-secondary mt-1 tag-badge" data-tag="@item.Category">@item.Category</div>
                 </div>
 
                 <!-- 編集フォーム -->
@@ -32,8 +31,8 @@
                         <input type="hidden" name="Id" value="@item.Id" />
                         <input class="form-control mb-2" name="Title" value="@item.Title" placeholder="タイトル" />
                         <textarea class="form-control mb-2" name="Content" rows="4">@item.Content</textarea>
-                        <input class="form-control mb-2" name="Tag" value="@item.Tag" placeholder="タグ" />
-                        <small class="text-muted">作成日: @item.Date?.ToString("yyyy-MM-dd HH:mm")</small>
+                        <input class="form-control mb-2" name="Category" value="@item.Category" placeholder="タグ" />
+                        <small class="text-muted">作成日: @item.CreatedAt?.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</small>
                         <div class="d-flex gap-2 mt-2">
                             <button type="submit" class="btn btn-primary btn-sm">更新</button>
                         </div>
