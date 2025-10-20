@@ -4,7 +4,7 @@
 
 <div class="mb-3">
     <label class="form-label"><strong>日付</strong></label>
-    <input class="form-control" value="@Model.CreatedAt.ToString("yyyy-MM-dd")" readonly />
+    <input class="form-control" value="@TimeZoneInfo.ConvertTimeFromUtc(Model.CreatedAt, TimeZoneInfo.FindSystemTimeZoneById("Tokyo Standard Time")).ToString("yyyy-MM-dd HH:mm")" readonly />
 </div>
 
 <div class="mb-3">

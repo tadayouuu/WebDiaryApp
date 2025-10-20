@@ -7,7 +7,7 @@
 
     <div class="mb-3">
         <label asp-for="CreatedAt" class="form-label"></label>
-        <input asp-for="CreatedAt" class="form-control" readonly />
+        <input class="form-control" value="@TimeZoneInfo.ConvertTimeFromUtc(Model.CreatedAt, TimeZoneInfo.FindSystemTimeZoneById("Tokyo Standard Time")).ToString("yyyy-MM-dd HH:mm")" readonly />
     </div>
 
     <div class="mb-3">
