@@ -4,28 +4,21 @@
 
 <form asp-action="Edit" method="post" class="needs-validation" novalidate>
     <input type="hidden" asp-for="Id" />
-
-@* 作成日を表示したい場合は CreatedAt を使用、ただし編集不可 *@
     <div class="mb-3">
-        <label asp-for="CreatedAt" class="form-label">作成日</label>
-        <input asp-for="CreatedAt" class="form-control" readonly />
+        <label asp-for="Date" class="form-label"></label>
+        <input asp-for="Date" class="form-control" readonly />
     </div>
-
     <div class="mb-3">
-        <label asp-for="Title" class="form-label">タイトル</label>
+        <label asp-for="Title" class="form-label"></label>
         <input asp-for="Title" class="form-control" />
     </div>
-
-@* Tag → Category に置換 *@
     <div class="mb-3">
-        <label asp-for="Category" class="form-label">タグ</label>
-        <input asp-for="Category" class="form-control" />
+        <label asp-for="Tag" class="form-label"></label>
+        <input asp-for="Tag" class="form-control" />
     </div>
-
     <div class="mb-3">
-        <label asp-for="Content" class="form-label">内容</label>
+        <label asp-for="Content" class="form-label"></label>
         <textarea asp-for="Content" class="form-control" rows="5"></textarea>
     </div>
-
     <button type="submit" class="btn btn-primary">保存</button>
-    <a class="btn bt
+</form>
