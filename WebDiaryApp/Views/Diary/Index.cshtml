@@ -75,12 +75,12 @@
             $('.category-badge').click(function (e) {
                 e.stopPropagation();
                 var category = $(this).data('category');
-                var isActive = $(this).hasClass('active-tag');
+                var isActive = $(this).hasClass('active-category');
 
-                $('.category-badge').removeClass('active-tag');
+                $('.category-badge').removeClass('active-category');
 
                 if (!isActive) {
-                    $(this).addClass('active-tag');
+                    $(this).addClass('active-category');
                     $('.diary-card').each(function () {
                         if ($(this).find('.category-badge').data('category') !== category) {
                             $(this).hide();
