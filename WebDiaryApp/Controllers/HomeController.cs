@@ -1,5 +1,6 @@
-using System.Diagnostics;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics;
 using WebDiaryApp.Models;
 
 namespace WebDiaryApp.Controllers
@@ -12,8 +13,8 @@ namespace WebDiaryApp.Controllers
         {
             _logger = logger;
         }
-
-        public IActionResult Index()
+		[Authorize]
+		public IActionResult Index()
         {
             return View();
         }

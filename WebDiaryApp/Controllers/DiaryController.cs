@@ -1,10 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebDiaryApp.Data;
 using WebDiaryApp.Models;
 
 namespace WebDiaryApp.Controllers
 {
+	[Authorize]
 	public class DiaryController : Controller
 	{
 		private readonly ApplicationDbContext _context;
