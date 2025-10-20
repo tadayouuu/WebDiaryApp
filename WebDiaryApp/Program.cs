@@ -2,6 +2,8 @@ using Microsoft.EntityFrameworkCore;
 using WebDiaryApp.Models;
 using WebDiaryApp.Data;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Localization;
+using System.Globalization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -29,6 +31,15 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options =>
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
+
+// サポートするカルチャを設定
+var supportedCultures = new[] { new CultureInfo("ja-JP") };
+app.UseRequestLocalization(new RequestLocalizationOptions
+{
+	DefaultRequestCulture = new RequestCulture("ja-JP"),
+	SupportedCultures = supportedCultures,
+	SupportedUICultures = supportedCultures
+});
 
 if (!app.Environment.IsDevelopment())
 {

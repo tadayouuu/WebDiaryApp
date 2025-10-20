@@ -5,7 +5,7 @@
 <div class="nav-login-container">
     @if (SignInManager.IsSignedIn(User))
     {
-        <span class="nav-greeting">Hello @User.Identity.Name!</span>
+        <span class="nav-greeting">@User.Identity.Name ログイン中</span>
         <form asp-area="Identity" asp-page="/Account/Logout" method="post" class="nav-logout-form">
             <button type="submit" class="nav-btn">Logout</button>
         </form>
