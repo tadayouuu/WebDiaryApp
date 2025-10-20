@@ -1,18 +1,25 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using WebDiaryApp.Data;
 using WebDiaryApp.Models;
 
 namespace WebDiaryApp.Controllers
 {
 	public class DiaryController : Controller
 	{
-		private readonly DiaryContext _context;
+		//private readonly DiaryContext _context;
 
-		public DiaryController(DiaryContext context)
+		//public DiaryController(DiaryContext context)
+		//{
+		//	_context = context;
+		//}
+
+		private readonly ApplicationDbContext _context;
+
+		public DiaryController(ApplicationDbContext context)
 		{
 			_context = context;
 		}
-
 		// 一覧表示
 		public async Task<IActionResult> Index()
 		{
