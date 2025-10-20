@@ -51,7 +51,7 @@ footer {
     border: 1px solid #ccc;
 }
 
-.tag-badge.active-tag {
+.category-badge.active-category {
     background-color: #007bff !important;
     color: #fff !important;
 }
