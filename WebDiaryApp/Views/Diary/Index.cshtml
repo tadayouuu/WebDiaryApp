@@ -67,37 +67,84 @@
 @section Scripts {
     <script>
         $(document).ready(function () {
-            $('.diary-card').click(function (e) {
-                if ($(e.target).closest('form').length) return;
+            // $('.diary-card').click(function (e) {
+            //     if ($(e.target).closest('form').length) return;
+
+            //     var $clickedCard = $(this);
+            //     $('.diary-card').not($clickedCard).find('.summary').removeClass('d-none');
+            //     $('.diary-card').not($clickedCard).find('.edit-form').addClass('d-none');
+
+            //     $clickedCard.find('.summary').toggleClass('d-none');
+            //     $clickedCard.find('.edit-form').toggleClass('d-none');
+            // });
+
+            // $('.btn-edit').click(function (e) {
+            //     e.stopPropagation();
+            //     var $card = $(this).closest('.diary-card');
+            //     $card.find('.summary, .preview-form').addClass('d-none');
+            //     $card.find('.edit-form').removeClass('d-none');
+            // });
+
+            // $('.btn-preview').click(function (e) {
+            //     e.stopPropagation();
+
+            //     var $card = $(this).closest('.diary-card');
+
+            //     他のカードをすべて閉じる
+            //     $('.diary-card').not($card).find('.preview-form').addClass('d-none');
+            //     $('.diary-card').not($card).find('.summary, .edit-form').addClass('d-none');
+            //     $('.diary-card').not($card).find('.summary').removeClass('d-none');
+
+            //     現在のカードだけプレビュー切り替え
+            //     $card.find('.summary, .edit-form').addClass('d-none');
+            //     $card.find('.preview-form').removeClass('d-none');
+            // });
+
+            $('.diary-card').off('click').on('click', function (e) {
+                // フォーム内やボタン類は無視
+                if (
+                    $(e.target).closest('form').length ||
+                    $(e.target).hasClass('btn') ||
+                    $(e.target).closest('.btn').length
+                ) return;
 
                 var $clickedCard = $(this);
-                $('.diary-card').not($clickedCard).find('.summary').removeClass('d-none');
-                $('.diary-card').not($clickedCard).find('.edit-form').addClass('d-none');
 
+                // 他のカードを閉じる
+                $('.diary-card').not($clickedCard).find('.summary').removeClass('d-none');
+                $('.diary-card').not($clickedCard).find('.edit-form, .preview-form').addClass('d-none');
+
+                // 自分のカードだけトグル
                 $clickedCard.find('.summary').toggleClass('d-none');
                 $clickedCard.find('.edit-form').toggleClass('d-none');
             });
 
-            $('.btn-edit').click(function (e) {
-                e.stopPropagation();
-                var $card = $(this).closest('.diary-card');
-                $card.find('.summary, .preview-form').addClass('d-none');
-                $card.find('.edit-form').removeClass('d-none');
-            });
-
-            $('.btn-preview').click(function (e) {
-                e.stopPropagation();
+            $('.btn-preview').off('click').on('click', function (e) {
+                e.stopImmediatePropagation(); // 伝播を完全に止める
 
                 var $card = $(this).closest('.diary-card');
 
-                // 他のカードをすべて閉じる
-                $('.diary-card').not($card).find('.preview-form').addClass('d-none');
-                $('.diary-card').not($card).find('.summary, .edit-form').addClass('d-none');
+                // 他カード閉じる
                 $('.diary-card').not($card).find('.summary').removeClass('d-none');
+                $('.diary-card').not($card).find('.edit-form, .preview-form').addClass('d-none');
 
-                // 現在のカードだけプレビュー切り替え
+                // このカードだけプレビュー表示
                 $card.find('.summary, .edit-form').addClass('d-none');
                 $card.find('.preview-form').removeClass('d-none');
+            });
+
+            $('.btn-edit').off('click').on('click', function (e) {
+                e.stopImmediatePropagation();
+
+                var $card = $(this).closest('.diary-card');
+
+                // 他カード閉じる
+                $('.diary-card').not($card).find('.summary').removeClass('d-none');
+                $('.diary-card').not($card).find('.edit-form, .preview-form').addClass('d-none');
+
+                // 自分の編集フォーム開く
+                $card.find('.summary, .preview-form').addClass('d-none');
+                $card.find('.edit-form').removeClass('d-none');
             });
 
             // カード外クリックでリセット
