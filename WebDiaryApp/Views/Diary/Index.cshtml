@@ -87,7 +87,15 @@
 
             $('.btn-preview').click(function (e) {
                 e.stopPropagation();
+
                 var $card = $(this).closest('.diary-card');
+
+                // 他のカードをすべて閉じる
+                $('.diary-card').not($card).find('.preview-form').addClass('d-none');
+                $('.diary-card').not($card).find('.summary, .edit-form').addClass('d-none');
+                $('.diary-card').not($card).find('.summary').removeClass('d-none');
+
+                // 現在のカードだけプレビュー切り替え
                 $card.find('.summary, .edit-form').addClass('d-none');
                 $card.find('.preview-form').removeClass('d-none');
             });
@@ -98,28 +106,7 @@
                 $('.diary-card').find('.summary').removeClass('d-none');
                 $('.diary-card').find('.edit-form, .preview-form').addClass('d-none');
             });
-
-            // $('.category-badge').click(function (e) {
-            //     e.stopPropagation();
-            //     var category = $(this).data('category');
-            //     var isActive = $(this).hasClass('active-category');
-
-            //     $('.category-badge').removeClass('active-category');
-
-            //     if (!isActive) {
-            //         $(this).addClass('active-category');
-            //         $('.diary-card').each(function () {
-            //             if ($(this).find('.category-badge').data('category') !== category) {
-            //                 $(this).hide();
-            //             } else {
-            //                 $(this).show();
-            //             }
-            //         });
-            //     } else {
-            //         $('.diary-card').show();
-            //     }
-            // });
-
+            
             $('.category-badge').off('click').on('click', function (e) {
                 e.stopPropagation();
                 var category = $(this).data('category');
