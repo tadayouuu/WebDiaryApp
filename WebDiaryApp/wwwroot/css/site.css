@@ -113,3 +113,31 @@ body {
     ::-webkit-scrollbar-thumb:hover {
         background: #999;
     }
+
+/* === Notion風ログインボタン ========================== */
+
+.notion-btn {
+    border: 1px solid #ddd;
+    background-color: #fafafa;
+    color: #333;
+    border-radius: 6px;
+    padding: 6px 14px;
+    font-weight: 500;
+    font-size: 0.9rem;
+    transition: all 0.15s ease;
+}
+
+    .notion-btn:hover {
+        background-color: #f0f0f0;
+        border-color: #ccc;
+        color: #111;
+    }
+
+    .notion-btn:active {
+        background-color: #eaeaea;
+    }
+
+/* ユーザー名の文字も淡く整える */
+.login-section span {
+    color: #666;
+}
