@@ -24,7 +24,6 @@
                 <div class="card-body summary">
                     <h5 class="card-title"><span>📝</span> @item.Title</h5>
                     <p class="card-text text-truncate">@item.Content</p>
-                    @* <small class="text-muted">@createdAtJst.ToString("yyyy-MM-dd HH:mm")</small> *@
                     <small class="text-muted d-block text-end" style="font-size:0.8rem;">@createdAtJst.ToString("yyyy-MM-dd HH:mm")</small>
                     <div class="badge bg-secondary mt-1 category-badge" data-category="@item.Category">@item.Category</div>
                 </div>
@@ -50,10 +49,14 @@
 
                 <!-- プレビュー -->
                 <div class="card-body preview-form d-none">
-                    <h5>@item.Title</h5>
+                    @* <h5 class="card-title"><span>📝</span> @item.Title</h5>
                     <p>@item.Content</p>
                     <div class="badge bg-secondary mt-1">@item.Category</div>
-                    <small class="text-muted">@createdAtJst.ToString("yyyy-MM-dd HH:mm")</small>
+                    <small class="text-muted">@createdAtJst.ToString("yyyy-MM-dd HH:mm")</small> *@
+                    <h5 class="card-title"><span>📝</span> @item.Title</h5>
+                    <p class="card-text text-truncate">@item.Content</p>
+                    <small class="text-muted d-block text-end" style="font-size:0.8rem;">@createdAtJst.ToString("yyyy-MM-dd HH:mm")</small>
+                    <div class="badge bg-secondary mt-1 category-badge" data-category="@item.Category">@item.Category</div>
                 </div>
 
                 <div class="card-body d-flex gap-2 mt-2">
