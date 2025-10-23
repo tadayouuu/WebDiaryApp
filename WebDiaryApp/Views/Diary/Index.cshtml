@@ -99,21 +99,40 @@
                 $('.diary-card').find('.edit-form, .preview-form').addClass('d-none');
             });
 
-            $('.category-badge').click(function (e) {
+            // $('.category-badge').click(function (e) {
+            //     e.stopPropagation();
+            //     var category = $(this).data('category');
+            //     var isActive = $(this).hasClass('active-category');
+
+            //     $('.category-badge').removeClass('active-category');
+
+            //     if (!isActive) {
+            //         $(this).addClass('active-category');
+            //         $('.diary-card').each(function () {
+            //             if ($(this).find('.category-badge').data('category') !== category) {
+            //                 $(this).hide();
+            //             } else {
+            //                 $(this).show();
+            //             }
+            //         });
+            //     } else {
+            //         $('.diary-card').show();
+            //     }
+            // });
+
+            $('.category-badge').off('click').on('click', function (e) {
                 e.stopPropagation();
                 var category = $(this).data('category');
                 var isActive = $(this).hasClass('active-category');
 
+                // いったん全解除
                 $('.category-badge').removeClass('active-category');
 
                 if (!isActive) {
                     $(this).addClass('active-category');
                     $('.diary-card').each(function () {
-                        if ($(this).find('.category-badge').data('category') !== category) {
-                            $(this).hide();
-                        } else {
-                            $(this).show();
-                        }
+                        const cardCategory = $(this).find('.category-badge').data('category');
+                        $(this).toggle(cardCategory === category);
                     });
                 } else {
                     $('.diary-card').show();
