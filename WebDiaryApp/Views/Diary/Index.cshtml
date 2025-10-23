@@ -110,6 +110,11 @@
 
                 var $clickedCard = $(this);
 
+                // もしプレビュー中なら、クリックしても編集を開かない
+                if (!$clickedCard.find('.preview-form').hasClass('d-none')) {
+                    return;
+                }
+
                 // 他のカードを閉じる
                 $('.diary-card').not($clickedCard).find('.summary').removeClass('d-none');
                 $('.diary-card').not($clickedCard).find('.edit-form, .preview-form').addClass('d-none');
