@@ -23,7 +23,6 @@
                 <!-- 表示部分 -->
                 <div class="card-body summary">
                     <h5 class="card-title"><span>📝</span> @item.Title</h5>
-                    <h5 class="card-title text-truncate">@item.Title</h5>
                     <p class="card-text text-truncate">@item.Content</p>
                     @* <small class="text-muted">@createdAtJst.ToString("yyyy-MM-dd HH:mm")</small> *@
                     <small class="text-muted d-block text-end" style="font-size:0.8rem;">@createdAtJst.ToString("yyyy-MM-dd HH:mm")</small>
@@ -59,7 +58,7 @@
 
                 <div class="card-body d-flex gap-2 mt-2">
                     <button type="button" class="btn btn-info btn-sm btn-preview">プレビュー</button>
-                    <button type="button" class="btn btn-primary btn-sm btn-edit">編集</button>
+                    @* <button type="button" class="btn btn-primary btn-sm btn-edit">編集</button> *@
                 </div>
             </div>
         </div>
