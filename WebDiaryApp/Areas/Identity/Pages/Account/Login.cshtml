@@ -30,7 +30,9 @@
             </label>
         </div>
 
-        <button id="login-submit" type="submit" class="btn btn-dark w-100 rounded-pill py-2 mb-3">ログイン</button>
+        <button id="login-submit" type="submit" class="btn btn-dark w-100 rounded-pill py-2 mb-3">
+            ログイン
+        </button>
 
         <div class="text-center">
             <p class="mb-1">
@@ -69,9 +71,11 @@
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script>
+        // ✅ 自動ログイン防止スクリプト
         function preventAutoSubmit(e) {
-            // 「ログイン」ボタンが押された時だけ送信を許可
+            // submitイベントの発火元（ボタン）が無い or 「ログイン」ボタン以外なら止める
             if (!e.submitter || e.submitter.id !== "login-submit") {
+                console.log("⚠️ 自動送信をブロックしました");
                 e.preventDefault();
                 return false;
             }
