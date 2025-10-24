@@ -1,71 +1,47 @@
 ﻿@page
 @model RegisterModel
-
 @{
     ViewData["Title"] = "新規登録";
 }
 
-<h1 class="mb-3">@ViewData["Title"]</h1>
+<div class="identity-card">
+    <h2 class="fw-bold mb-3 text-center">@ViewData["Title"]</h2>
+    <p class="text-muted text-center mb-4">
+        必要な情報を入力してアカウントを作ってくれんさい。
+    </p>
 
-<div class="row">
-    <div class="col-md-4">
-        <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post">
-            <h2>アカウントを新規作成</h2>
-            <hr />
+    <form asp-route-returnUrl="@Model.ReturnUrl" method="post">
+        <div asp-validation-summary="ModelOnly" class="text-danger mb-3" role="alert"></div>
 
-            <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+        <div class="mb-3">
+            <label asp-for="Input.Email" class="form-label">メールアドレス</label>
+            <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
+            <span asp-validation-for="Input.Email" class="text-danger"></span>
+        </div>
 
-            <div class="form-floating mb-3">
-                <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="メールアドレス" />
-                <label asp-for="Input.Email">メールアドレス</label>
-                <span asp-validation-for="Input.Email" class="text-danger"></span>
-            </div>
+        <div class="mb-3">
+            <label asp-for="Input.Password" class="form-label">パスワード</label>
+            <input asp-for="Input.Password" class="form-control" autocomplete="new-password" aria-required="true" placeholder="8文字以上で入力してつかぁさい" />
+            <span asp-validation-for="Input.Password" class="text-danger"></span>
+        </div>
 
-            <div class="form-floating mb-3">
-                <input asp-for="Input.Password" class="form-control" autocomplete="new-password" aria-required="true" placeholder="パスワード" />
-                <label asp-for="Input.Password">パスワード</label>
-                <span asp-validation-for="Input.Password" class="text-danger"></span>
-            </div>
+        <div class="mb-4">
+            <label asp-for="Input.ConfirmPassword" class="form-label">パスワード（確認）</label>
+            <input asp-for="Input.ConfirmPassword" class="form-control" autocomplete="new-password" aria-required="true" placeholder="もう一度同じパスワードを入力" />
+            <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
+        </div>
 
-            <div class="form-floating mb-3">
-                <input asp-for="Input.ConfirmPassword" class="form-control" autocomplete="new-password" aria-required="true" placeholder="パスワード（確認）" />
-                <label asp-for="Input.ConfirmPassword">パスワード（確認）</label>
-                <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
-            </div>
+        <button id="registerSubmit" type="submit" class="btn btn-dark w-100 rounded-pill py-2 mb-3">
+            登録する
+        </button>
 
-            <button id="registerSubmit" type="submit" class="w-100 btn btn-lg btn-primary">登録する</button>
-        </form>
-    </div>
-
-    <div class="col-md-6 col-md-offset-2">
-        <section>
-            <h3>外部サービスで登録</h3>
-            <hr />
-            @{
-                if ((Model.ExternalLogins?.Count ?? 0) == 0)
-                {
-                    <p>外部認証サービスは設定されとらんけぇね。</p>
-                }
-                else
-                {
-                    <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post" class="form-horizontal">
-                        <div>
-                            <p>
-                                @foreach (var provider in Model.ExternalLogins!)
-                                {
-                                    <button type="submit" class="btn btn-outline-primary me-2"
-                                            name="provider" value="@provider.Name"
-                                            title="@provider.DisplayName で登録">
-                                        @provider.DisplayName
-                                    </button>
-                                }
-                            </p>
-                        </div>
-                    </form>
-                }
-            }
-        </section>
-    </div>
+        <div class="text-center">
+            <p class="mb-1">
+                すでにアカウント持っとる？
+                <a asp-page="./Login" asp-route-returnUrl="@Model.ReturnUrl" class="text-decoration-none">ログインページへ</a>
+            </p>
+        </div>
+    </form>
 </div>
 
 @section Scripts {

@@ -1,21 +1,35 @@
 ﻿@page
 @model LogoutModel
 @{
-    ViewData["Title"] = "Log out";
+    ViewData["Title"] = "ログアウト";
 }
 
-<header>
-    <h1>@ViewData["Title"]</h1>
-    @{
-        if (User.Identity?.IsAuthenticated ?? false)
-        {
-            <form class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Page("/", new { area = "" })" method="post">
-                <button type="submit" class="nav-link btn btn-link text-dark">Click here to Logout</button>
-            </form>
-        }
-        else
-        {
-            <p>You have successfully logged out of the application.</p>
-        }
+<div class="identity-card text-center">
+    <h2 class="fw-bold mb-3">@ViewData["Title"]</h2>
+
+    @if (User.Identity?.IsAuthenticated ?? false)
+    {
+        <p class="text-muted mb-4">
+            アプリからログアウトするけどええかの？<br />
+            下のボタンを押したらサインアウトするで。
+        </p>
+
+        <form asp-area="Identity" asp-page="/Account/Logout"
+              asp-route-returnUrl="@Url.Page("/", new { area = "" })" method="post">
+            <button type="submit" class="btn btn-dark rounded-pill px-4 py-2">
+                ログアウトする
+            </button>
+        </form>
     }
-</header>
+    else
+    {
+        <p class="text-muted mb-4">
+            アプリからログアウトしたで。<br />
+            また使うときはログインしてくれんさい。
+        </p>
+
+        <a asp-page="./Login" class="btn btn-dark rounded-pill w-100 py-2">
+            ログインページへ戻る
+        </a>
+    }
+</div>

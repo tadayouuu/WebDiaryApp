@@ -1,10 +1,19 @@
 ﻿@page
 @model AccessDeniedModel
 @{
-    ViewData["Title"] = "Access denied";
+    ViewData["Title"] = "アクセスできんで";
 }
 
-<header>
-    <h1 class="text-danger">@ViewData["Title"]</h1>
-    <p class="text-danger">You do not have access to this resource.</p>
-</header>
+<div class="identity-card text-center">
+    <h2 class="fw-bold mb-3">@ViewData["Title"]</h2>
+    <p class="text-muted mb-4">
+        すまんのぉ、このページを見る権限がないみたいじゃ。<br />
+        ログインし直すか、別のページを開いてみてくれんさい。
+    </p>
+
+    <div class="mt-4">
+        <a asp-page="./Login" class="btn btn-dark rounded-pill px-4 py-2">
+            ログインページへ戻る
+        </a>
+    </div>
+</div>
