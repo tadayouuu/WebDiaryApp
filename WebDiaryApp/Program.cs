@@ -1,88 +1,22 @@
-//using Microsoft.EntityFrameworkCore;
-//using WebDiaryApp.Models;
-//using WebDiaryApp.Data;
-//using Microsoft.AspNetCore.Identity;
-//using Microsoft.AspNetCore.Localization;
-//using System.Globalization;
-
-//var builder = WebApplication.CreateBuilder(args);
-
-//// MVC + Razor Pages
-//builder.Services.AddControllersWithViews();
-
-//// PostgreSQL Ú‘±•¶š—ñ
-//var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-
-//// DbContext İ’è
-//builder.Services.AddDbContext<ApplicationDbContext>(options =>
-//	options.UseNpgsql(connectionString));
-
-//// Identity İ’è
-//builder.Services.AddDefaultIdentity<IdentityUser>(options =>
-//{
-//	options.SignIn.RequireConfirmedAccount = false;
-//})
-//.AddEntityFrameworkStores<ApplicationDbContext>();
-
-//builder.Services.AddControllersWithViews();
-
-//var app = builder.Build();
-
-//// ƒTƒ|[ƒg‚·‚éƒJƒ‹ƒ`ƒƒ‚ğİ’è
-//var supportedCultures = new[] { new CultureInfo("ja-JP") };
-//app.UseRequestLocalization(new RequestLocalizationOptions
-//{
-//	DefaultRequestCulture = new RequestCulture("ja-JP"),
-//	SupportedCultures = supportedCultures,
-//	SupportedUICultures = supportedCultures
-//});
-
-//if (!app.Environment.IsDevelopment())
-//{
-//	app.UseExceptionHandler("/Home/Error");
-//	app.UseHsts();
-//}
-
-//app.UseHttpsRedirection();
-//app.UseStaticFiles();
-//app.UseRouting();
-
-//app.UseAuthentication();
-//app.UseAuthorization();
-
-//// ƒfƒtƒHƒ‹ƒgƒ‹[ƒg
-//app.MapControllerRoute(
-//	name: "default",
-//	pattern: "{controller=Diary}/{action=Index}/{id?}");
-//app.MapRazorPages(); // Identity ‚ÌƒƒOƒCƒ“ƒy[ƒW‚È‚Ç‚ğ—LŒø‰»
-
-//using (var scope = app.Services.CreateScope())
-//{
-//	var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-//	db.Database.Migrate();
-//}
-
-//app.Run();
-
 using Microsoft.EntityFrameworkCore;
 using WebDiaryApp.Models;
 using WebDiaryApp.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Localization;
 using System.Globalization;
-using Npgsql; // © Supabase‘Î‰‚Å•K—v
+using Npgsql; // ï¿½ï¿½ Supabaseï¿½Î‰ï¿½ï¿½Å•Kï¿½v
 
 var builder = WebApplication.CreateBuilder(args);
 
 // MVC + Razor Pages
 builder.Services.AddControllersWithViews();
 
-// --- Ú‘±•¶š—ñİ’è ---
-// ŠÂ‹«•Ï” DATABASE_URLiRender/Supabase—pj‚ğ—Dæ‚µA‚È‚¯‚ê‚Î appsettings.json ‚Ì’l‚ğg—p
+// --- ï¿½Ú‘ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½İ’ï¿½ ---
+// ï¿½Â‹ï¿½ï¿½Ïï¿½ DATABASE_URLï¿½iRender/Supabaseï¿½pï¿½jï¿½ï¿½Dï¿½æ‚µï¿½Aï¿½È‚ï¿½ï¿½ï¿½ï¿½ appsettings.json ï¿½Ì’lï¿½ï¿½ï¿½gï¿½p
 var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL")
     ?? builder.Configuration.GetConnectionString("DefaultConnection");
 
-// --- Supabase‚È‚Ç‚ÌURLŒ`®‚ğNpgsqlŒ`®‚É•ÏŠ· ---
+// --- Supabaseï¿½È‚Ç‚ï¿½URLï¿½`ï¿½ï¿½ï¿½ï¿½Npgsqlï¿½`ï¿½ï¿½ï¿½É•ÏŠï¿½ ---
 if (connectionString.StartsWith("postgres://") || connectionString.StartsWith("postgresql://"))
 {
     var uri = new Uri(connectionString);
@@ -102,11 +36,11 @@ if (connectionString.StartsWith("postgres://") || connectionString.StartsWith("p
     connectionString = npgsqlBuilder.ConnectionString;
 }
 
-// --- DbContext İ’è ---
+// --- DbContext ï¿½İ’ï¿½ ---
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString));
 
-// --- Identity İ’è ---
+// --- Identity ï¿½İ’ï¿½ ---
 builder.Services.AddDefaultIdentity<IdentityUser>(options =>
 {
     options.SignIn.RequireConfirmedAccount = false;
@@ -115,7 +49,7 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options =>
 
 var app = builder.Build();
 
-// --- ƒƒP[ƒ‹İ’è ---
+// --- ï¿½ï¿½ï¿½Pï¿½[ï¿½ï¿½ï¿½İ’ï¿½ ---
 var supportedCultures = new[] { new CultureInfo("ja-JP") };
 app.UseRequestLocalization(new RequestLocalizationOptions
 {
@@ -137,13 +71,13 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
-// --- ƒ‹[ƒeƒBƒ“ƒOİ’è ---
+// --- ï¿½ï¿½ï¿½[ï¿½eï¿½Bï¿½ï¿½ï¿½Oï¿½İ’ï¿½ ---
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Diary}/{action=Index}/{id?}");
 app.MapRazorPages();
 
-// --- ƒ}ƒCƒOƒŒ[ƒVƒ‡ƒ“©“®“K—p ---
+// --- ï¿½}ï¿½Cï¿½Oï¿½ï¿½ï¿½[ï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Kï¿½p ---
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
