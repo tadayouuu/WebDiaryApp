@@ -6,20 +6,25 @@
 
 <div class="identity-card">
     <h2 class="fw-bold mb-3 text-center">@ViewData["Title"]</h2>
-    <p class="text-muted text-center mb-4">アカウント情報を入力してログインしんちゃい。</p>
+    <p class="text-muted text-center mb-4">
+        アカウント情報を入力してログインしんちゃい。
+    </p>
 
-    <form id="account" method="post" autocomplete="off" onsubmit="return preventAutoSubmit(event)">
+    <!-- ✅ 入力フォーム本体 -->
+    <form id="account" method="post" autocomplete="off">
         <div asp-validation-summary="ModelOnly" class="text-danger mb-3" role="alert"></div>
 
         <div class="mb-3">
             <label asp-for="Input.Email" class="form-label">メールアドレス</label>
-            <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
+            <input asp-for="Input.Email" class="form-control" autocomplete="username"
+                   aria-required="true" placeholder="name@example.com" />
             <span asp-validation-for="Input.Email" class="text-danger"></span>
         </div>
 
         <div class="mb-3">
             <label asp-for="Input.Password" class="form-label">パスワード</label>
-            <input asp-for="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="••••••••" />
+            <input asp-for="Input.Password" class="form-control" autocomplete="current-password"
+                   aria-required="true" placeholder="••••••••" />
             <span asp-validation-for="Input.Password" class="text-danger"></span>
         </div>
 
@@ -29,29 +34,39 @@
                 ログイン状態を維持する
             </label>
         </div>
+    </form>
 
+    <!-- ✅ 送信ボタンを別 form に分離して自動送信を防止 -->
+    <form onsubmit="document.getElementById('account').requestSubmit(); return false;">
         <button id="login-submit" type="submit" class="btn btn-dark w-100 rounded-pill py-2 mb-3">
             ログイン
         </button>
-
-        <div class="text-center">
-            <p class="mb-1">
-                <a id="forgot-password" asp-page="./ForgotPassword" class="text-decoration-none">パスワードを忘れたんかいね？</a>
-            </p>
-            <p class="mb-1">
-                <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl" class="text-decoration-none">新規ユーザー登録</a>
-            </p>
-            <p>
-                <a id="resend-confirmation" asp-page="./ResendEmailConfirmation" class="text-decoration-none">確認メールを再送信</a>
-            </p>
-        </div>
     </form>
+
+    <div class="text-center">
+        <p class="mb-1">
+            <a id="forgot-password" asp-page="./ForgotPassword" class="text-decoration-none">
+                パスワードを忘れたんかいね？
+            </a>
+        </p>
+        <p class="mb-1">
+            <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl" class="text-decoration-none">
+                新規ユーザー登録
+            </a>
+        </p>
+        <p>
+            <a id="resend-confirmation" asp-page="./ResendEmailConfirmation" class="text-decoration-none">
+                確認メールを再送信
+            </a>
+        </p>
+    </div>
 
     @if ((Model.ExternalLogins?.Count ?? 0) > 0)
     {
         <hr class="my-4" />
         <h3 class="text-center mb-3">外部サービスでログイン</h3>
-        <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post" class="text-center">
+        <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl"
+              method="post" class="text-center">
             @foreach (var provider in Model.ExternalLogins!)
             {
                 <button type="submit" class="btn btn-outline-dark rounded-pill me-2 mb-2"
@@ -64,22 +79,12 @@
     }
     else
     {
-        <p class="text-muted text-center mt-3">外部認証サービスは設定されとらんけぇね。</p>
+        <p class="text-muted text-center mt-3">
+            外部認証サービスは設定されとらんけぇね。
+        </p>
     }
 </div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
-    <script>
-        // ✅ 自動ログイン防止スクリプト
-        function preventAutoSubmit(e) {
-            // submitイベントの発火元（ボタン）が無い or 「ログイン」ボタン以外なら止める
-            if (!e.submitter || e.submitter.id !== "login-submit") {
-                console.log("⚠️ 自動送信をブロックしました");
-                e.preventDefault();
-                return false;
-            }
-            return true;
-        }
-    </script>
 }
