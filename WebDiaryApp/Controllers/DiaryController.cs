@@ -19,6 +19,8 @@ namespace WebDiaryApp.Controllers
 		// 一覧表示
 		public async Task<IActionResult> Index()
 		{
+			var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
 			var entries = await _context.DiaryEntries
 				.OrderByDescending(d => d.CreatedAt)
 				.ToListAsync();
@@ -38,6 +40,9 @@ namespace WebDiaryApp.Controllers
 		{
 			if (ModelState.IsValid)
 			{
+				// 🧩 現在ログイン中のユーザーIDを取得
+				diaryEntry.UserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
 				// 日付を自動セット（UTC）
 				diaryEntry.CreatedAt = DateTime.UtcNow;
 
