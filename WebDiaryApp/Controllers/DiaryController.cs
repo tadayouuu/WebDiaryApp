@@ -22,6 +22,7 @@ namespace WebDiaryApp.Controllers
 			var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
 
 			var entries = await _context.DiaryEntries
+				.Where(d => d.UserId == userId)
 				.OrderByDescending(d => d.CreatedAt)
 				.ToListAsync();
 			return View(entries);
