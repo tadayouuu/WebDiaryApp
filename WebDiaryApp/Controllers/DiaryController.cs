@@ -114,28 +114,35 @@ namespace WebDiaryApp.Controllers
 				{
 					try
 					{
-						var supabaseUrl = "https://klkhzamffrmkvyeiubeo.supabase.co";
-						var supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtsa2h6YW1mZnJta3Z5ZWl1YmVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA2ODA5NTksImV4cCI6MjA3NjI1Njk1OX0.NemJMsY7OOWgOvxLRd107NxIizKdmRKvfSGLIyyQ9cg";
+						var supabaseUrl = Environment.GetEnvironmentVariable("SUPABASE_URL") ?? "https://klkhzamffrmkvyeiubeo.supabase.co";
+						var supabaseKey = Environment.GetEnvironmentVariable("SUPABASE_SERVICE_KEY")
+							?? "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtsa2h6YW1mZnJta3Z5ZWl1YmVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA2ODA5NTksImV4cCI6MjA3NjI1Njk1OX0.NemJMsY7OOWgOvxLRd107NxIizKdmRKvfSGLIyyQ9cg";
 
 						var client = new Supabase.Client(supabaseUrl, supabaseKey);
 						await client.InitializeAsync();
 
 						var uri = new Uri(entry.ImageUrl);
-						// 絶対パス部分から "public/images/" より後ろを取得
-						var pathStart = uri.AbsolutePath.IndexOf("public/images/");
-						if (pathStart >= 0)
-						{
-							var path = uri.AbsolutePath.Substring(pathStart + "public/images/".Length);
 
-							var storage = client.Storage.From("images");
-							var result = await storage.Remove(new List<string> { path });
+						// ✅ Supabaseの仕様に完全一致するようにパスを抽出
+						// ex: /storage/v1/object/public/images/uploads/ec2993c0.jpg
+						var path = uri.AbsolutePath;
 
-							Console.WriteLine($"[Supabase] 削除結果: {result}");
-						}
-						else
-						{
-							Console.WriteLine("[Supabase] URL解析に失敗しました: " + entry.ImageUrl);
-						}
+						// /storage/v1/object/public/images/ を削除して残りを取得
+						path = path.Replace("/storage/v1/object/public/images/", "");
+
+						// 念のためデコード
+						path = Uri.UnescapeDataString(path);
+
+						// 先頭のスラッシュ除去（必要なら）
+						if (path.StartsWith("/"))
+							path = path.Substring(1);
+
+						Console.WriteLine($"[Supabase] 削除対象パス: {path}");
+
+						var storage = client.Storage.From("images");
+						var result = await storage.Remove(new List<string> { path });
+
+						Console.WriteLine($"[Supabase] 削除完了: {result?.Count} 件");
 					}
 					catch (Exception ex)
 					{
