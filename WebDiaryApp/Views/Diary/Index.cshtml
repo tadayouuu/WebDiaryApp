@@ -49,11 +49,19 @@
 
                         @if (!string.IsNullOrEmpty(item.ImageUrl))
                         {
-                            <div class="text-center mb-2">
+                            <div class="text-center mb-2 position-relative">
                                 <img src="@item.ImageUrl"
                                      alt="現在の画像"
-                                     class="img-thumbnail"
+                                     class="img-thumbnail diary-img"
                                      style="max-width:120px; max-height:120px; object-fit:cover;" />
+
+                                <!-- 見た目は画像の右上に浮かせる -->
+                                <form asp-action="DeleteImage" asp-route-id="@item.Id"
+                                      method="post"
+                                      onsubmit="return confirm('画像を削除しますか？');"
+                                      class="delete-image-form">
+                                    <button type="submit" class="btn btn-outline-danger btn-sm">✖</button>
+                                </form>
                             </div>
                         }
 
@@ -217,19 +225,27 @@
             }
 
             try {
-                // ✅ ここで圧縮してアップロード
                 const imageUrl = await resizeAndUpload(file);
 
                 // hidden input 更新
                 $card.find('input[name="ImageUrl"]').val(imageUrl);
-                
-                // プレビュー画像更新（最初のimg要素に反映）
-                const $img = $card.find('img').first();
-                $img.fadeOut(150, () => {
-                    $img.attr('src', imageUrl);
+
+                // ✅ 編集フォーム内の画像更新
+                $card.find('.edit-form img').attr('src', imageUrl);
+
+                // ✅ 一覧サムネイル（summary側）も更新
+                $card.find('.summary img').attr('src', imageUrl);
+
+                // ✅ プレビュー側も更新
+                $card.find('.preview-form img').attr('src', imageUrl);
+
+                // ✅ 軽いアニメーションで「変わった」感
+                const $img = $card.find('.summary img');
+                $img.fadeOut(100, () => {
                     $img.fadeIn(300).addClass('image-updated');
-                    setTimeout(() => $img.removeClass('image-updated'), 1000);
+                    setTimeout(() => $img.removeClass('image-updated'), 800);
                 });
+
                 alert("画像を再アップロードしました！");
             } catch (err) {
                 alert("アップロードに失敗しました: " + err.message);

@@ -191,3 +191,14 @@ body {
     box-shadow: 0 0 10px rgba(13,110,253,0.6);
     transition: all 0.3s ease;
 }
+
+/* CSSÅFIndex.cshtmlÇ… <style> Ç‹ÇΩÇÕ site.css Ç…í«â¡ */
+.position-relative {
+    position: relative;
+}
+
+.delete-image-form {
+    position: absolute;
+    top: 0.3rem;
+    right: 0.3rem;
+}
