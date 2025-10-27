@@ -20,29 +20,30 @@
 
         <div class="col">
             <div class="card shadow-sm diary-card" data-id="@item.Id">
-                <!-- 表示部分 -->
+
+                <!-- 一覧表示部 -->
                 <div class="card-body summary">
                     <h5 class="card-title"><span>📝</span> @item.Title</h5>
 
-                    @* 🖼 画像サムネイル（存在する場合のみ） *@
                     @if (!string.IsNullOrEmpty(item.ImageUrl))
                     {
                         <div class="text-center mb-2">
                             <img src="@item.ImageUrl"
-                                 alt="日記画像サムネ"
+                                 alt="日記画像"
                                  class="img-thumbnail"
-                                 style="max-width: 120px; max-height: 120px; object-fit: cover;" />
+                                 style="max-width:120px; max-height:120px; object-fit:cover;" />
                         </div>
                     }
 
                     <p class="card-text text-truncate">@item.Content</p>
-                    <small class="text-muted d-block text-end" style="font-size:0.8rem;">@createdAtJst.ToString("yyyy-MM-dd HH:mm")</small>
+                    <small class="text-muted d-block text-end" style="font-size:0.8rem;">
+                        @createdAtJst.ToString("yyyy-MM-dd HH:mm")
+                    </small>
                     <div class="badge bg-secondary mt-1 category-badge" data-category="@item.Category">@item.Category</div>
                 </div>
 
+                <!-- 編集フォーム -->
                 <div class="card-body edit-form d-none">
-
-                    <!-- 編集フォーム -->
                     <form asp-action="Edit" method="post" class="mb-2">
                         <input type="hidden" name="Id" value="@item.Id" />
                         <input class="form-control mb-2" name="Title" value="@item.Title" placeholder="タイトル" />
@@ -55,13 +56,14 @@
                                      class="img-thumbnail diary-img"
                                      style="max-width:120px; max-height:120px; object-fit:cover;" />
 
-                                <!-- 見た目は画像の右上に浮かせる -->
-                                <form asp-action="DeleteImage" asp-route-id="@item.Id"
-                                      method="post"
-                                      onsubmit="return confirm('画像を削除しますか？');"
-                                      class="delete-image-form">
-                                    <button type="submit" class="btn btn-outline-danger btn-sm">✖</button>
-                                </form>
+                                <!-- 削除ボタン（別フォームだが画像近くに見せる） -->
+                                <div class="delete-image-wrapper">
+                                    <form asp-action="DeleteImage" asp-route-id="@item.Id"
+                                          method="post"
+                                          onsubmit="return confirm('画像を削除しますか？');">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm">✖</button>
+                                    </form>
+                                </div>
                             </div>
                         }
 
@@ -80,20 +82,7 @@
                         </div>
                     </form>
 
-                    <!-- 🔻画像削除フォーム（Editの外に出す！） -->
-                    @if (!string.IsNullOrEmpty(item.ImageUrl))
-                    {
-                        <div class="text-center mb-2">
-                            <form asp-action="DeleteImage" asp-route-id="@item.Id"
-                                  method="post"
-                                  onsubmit="return confirm('画像を削除しますか？');"
-                                  style="display:inline-block;">
-                                <button type="submit" class="btn btn-outline-danger btn-sm">画像を削除</button>
-                            </form>
-                        </div>
-                    }
-
-                    <!-- 日記削除フォーム -->
+                    <!-- 日記削除 -->
                     <form asp-action="Delete" method="post" onsubmit="return confirm('本当に削除しますか？');">
                         <input type="hidden" name="id" value="@item.Id" />
                         <button type="submit" class="btn btn-danger btn-sm">削除</button>
@@ -103,18 +92,15 @@
                 <!-- プレビュー -->
                 <div class="card-body preview-form d-none">
                     <h5 class="card-title"><span>📝</span> @item.Title</h5>
-
-                    @* 🖼️ 画像がある場合だけ表示 *@
                     @if (!string.IsNullOrEmpty(item.ImageUrl))
                     {
                         <div class="text-center mb-3">
                             <img src="@item.ImageUrl"
                                  alt="日記画像"
                                  class="img-fluid rounded shadow-sm"
-                                 style="max-width: 100%; height: auto;" />
+                                 style="max-width:100%; height:auto;" />
                         </div>
                     }
-
                     <p>@item.Content</p>
                     <div class="badge bg-secondary mt-1">@item.Category</div>
                     <small class="text-muted">@createdAtJst.ToString("yyyy-MM-dd HH:mm")</small>
@@ -122,83 +108,73 @@
 
                 <div class="card-body d-flex gap-2 mt-2">
                     <button type="button" class="btn btn-info btn-sm btn-preview">プレビュー</button>
-                    @* <button type="button" class="btn btn-primary btn-sm btn-edit">編集</button> *@
                 </div>
             </div>
         </div>
     }
 </div>
 
+<style>
+    .delete-image-wrapper {
+        position: absolute;
+        top: 4px;
+        right: 6px;
+    }
+
+    .image-updated {
+        outline: 2px solid #198754;
+        box-shadow: 0 0 6px rgba(25,135,84,0.8);
+        transition: all 0.3s ease;
+    }
+</style>
+
 @section Scripts {
     <script>
         $(document).ready(function () {
+
+            // ---- カード開閉 ----
             $('.diary-card').off('click').on('click', function (e) {
-                // フォーム内やボタン類は無視
+                // フォーム系クリックは無視
                 if (
                     $(e.target).closest('form').length ||
                     $(e.target).hasClass('btn') ||
-                    $(e.target).closest('.btn').length
+                    $(e.target).closest('.btn').length ||
+                    $(e.target).is('input[type=file]')
                 ) return;
 
-                var $clickedCard = $(this);
+                const $clicked = $(this);
+                if (!$clicked.find('.preview-form').hasClass('d-none')) return;
 
-                // もしプレビュー中なら、クリックしても編集を開かない
-                if (!$clickedCard.find('.preview-form').hasClass('d-none')) {
-                    return;
-                }
+                $('.diary-card').not($clicked).find('.summary').removeClass('d-none');
+                $('.diary-card').not($clicked).find('.edit-form, .preview-form').addClass('d-none');
 
-                // 他のカードを閉じる
-                $('.diary-card').not($clickedCard).find('.summary').removeClass('d-none');
-                $('.diary-card').not($clickedCard).find('.edit-form, .preview-form').addClass('d-none');
-
-                // 自分のカードだけトグル
-                $clickedCard.find('.summary').toggleClass('d-none');
-                $clickedCard.find('.edit-form').toggleClass('d-none');
+                $clicked.find('.summary').toggleClass('d-none');
+                $clicked.find('.edit-form').toggleClass('d-none');
             });
 
+            // ---- プレビュー切替 ----
             $('.btn-preview').off('click').on('click', function (e) {
-                e.stopImmediatePropagation(); // 伝播を完全に止める
-
-                var $card = $(this).closest('.diary-card');
-
-                // 他カード閉じる
+                e.stopImmediatePropagation();
+                const $card = $(this).closest('.diary-card');
                 $('.diary-card').not($card).find('.summary').removeClass('d-none');
                 $('.diary-card').not($card).find('.edit-form, .preview-form').addClass('d-none');
-
-                // このカードだけプレビュー表示
                 $card.find('.summary, .edit-form').addClass('d-none');
                 $card.find('.preview-form').removeClass('d-none');
             });
 
-            $('.btn-edit').off('click').on('click', function (e) {
-                e.stopImmediatePropagation();
-
-                var $card = $(this).closest('.diary-card');
-
-                // 他カード閉じる
-                $('.diary-card').not($card).find('.summary').removeClass('d-none');
-                $('.diary-card').not($card).find('.edit-form, .preview-form').addClass('d-none');
-
-                // 自分の編集フォーム開く
-                $card.find('.summary, .preview-form').addClass('d-none');
-                $card.find('.edit-form').removeClass('d-none');
-            });
-
-            // カード外クリックでリセット
+            // ---- 外クリックで閉じる ----
             $(document).click(function (e) {
                 if ($(e.target).closest('.diary-card').length) return;
                 $('.diary-card').find('.summary').removeClass('d-none');
                 $('.diary-card').find('.edit-form, .preview-form').addClass('d-none');
             });
-            
+
+            // ---- カテゴリ絞り込み ----
             $('.category-badge').off('click').on('click', function (e) {
                 e.stopPropagation();
-                var category = $(this).data('category');
-                var isActive = $(this).hasClass('active-category');
-
-                // いったん全解除
+                const category = $(this).data('category');
+                const isActive = $(this).hasClass('active-category');
                 $('.category-badge').removeClass('active-category');
-
                 if (!isActive) {
                     $(this).addClass('active-category');
                     $('.diary-card').each(function () {
@@ -210,40 +186,31 @@
                 }
             });
 
-            setTimeout(function () {
-                $('.alert').fadeOut('slow');
-            }, 3000);
+            // ---- フラッシュメッセージ自動消去 ----
+            setTimeout(() => $('.alert').fadeOut('slow'), 3000);
         });
 
+        // ---- 画像再アップロード（圧縮付き） ----
         $(document).on('click', '.uploadButton', async function () {
             const $card = $(this).closest('.diary-card');
             const fileInput = $card.find('.imageUpload')[0];
             const file = fileInput.files[0];
-            if (!file) {
-                alert("画像を選択してください。");
-                return;
-            }
+            if (!file) return alert("画像を選択してください。");
 
             try {
                 const imageUrl = await resizeAndUpload(file);
-
-                // hidden input 更新
                 $card.find('input[name="ImageUrl"]').val(imageUrl);
 
-                // ✅ 編集フォーム内の画像更新
-                $card.find('.edit-form img').attr('src', imageUrl);
+                // すべての画像を更新（summary/edit/preview）
+                $card.find('img').each(function () {
+                    if (this.src) this.src = imageUrl;
+                });
 
-                // ✅ 一覧サムネイル（summary側）も更新
-                $card.find('.summary img').attr('src', imageUrl);
-
-                // ✅ プレビュー側も更新
-                $card.find('.preview-form img').attr('src', imageUrl);
-
-                // ✅ 軽いアニメーションで「変わった」感
-                const $img = $card.find('.summary img');
-                $img.fadeOut(100, () => {
-                    $img.fadeIn(300).addClass('image-updated');
-                    setTimeout(() => $img.removeClass('image-updated'), 800);
+                // 軽いアニメーション
+                const $thumb = $card.find('.summary img');
+                $thumb.fadeOut(100, () => {
+                    $thumb.fadeIn(300).addClass('image-updated');
+                    setTimeout(() => $thumb.removeClass('image-updated'), 800);
                 });
 
                 alert("画像を再アップロードしました！");
@@ -252,15 +219,10 @@
             }
         });
 
+        // ---- 圧縮関数 ----
         async function resizeAndUpload(file) {
-            const maxWidth = 1200;
-            const maxHeight = 1200;
-            const quality = 0.8;
-
-            // 画像読み込み
+            const maxWidth = 1200, maxHeight = 1200, quality = 0.8;
             const img = await loadImage(file);
-
-            // Canvasリサイズ
             const canvas = document.createElement("canvas");
             let { width, height } = img;
             if (width > maxWidth || height > maxHeight) {
@@ -273,38 +235,18 @@
             const ctx = canvas.getContext("2d");
             ctx.drawImage(img, 0, 0, width, height);
 
-            // ✅ JPEG強制出力（画質指定）
-            const blob = await new Promise((resolve) =>
-                canvas.toBlob(
-                    resolve,
-                    "image/jpeg", // ← JPEG固定
-                    quality // ← 圧縮率指定（0.8 = 約80%品質）
-                )
-            );
-
-            // ✅ ファイルサイズ確認（デバッグ用）
+            const blob = await new Promise(r => canvas.toBlob(r, "image/jpeg", quality));
             console.log("Before:", (file.size / 1024).toFixed(1) + "KB");
             console.log("After:", (blob.size / 1024).toFixed(1) + "KB");
 
-            // アップロード
             const formData = new FormData();
             formData.append("file", new File([blob], file.name.replace(/\.[^.]+$/, ".jpg"), { type: "image/jpeg" }));
-
-            const response = await fetch("/Diary/UploadImage", {
-                method: "POST",
-                body: formData,
-            });
-
-            if (!response.ok) {
-                const text = await response.text();
-                throw new Error(text);
-            }
-
+            const response = await fetch("/Diary/UploadImage", { method: "POST", body: formData });
+            if (!response.ok) throw new Error(await response.text());
             const result = await response.json();
             return result.imageUrl;
         }
 
-        // 📸 EXIF無視で画像読み込み
         function loadImage(file) {
             return new Promise((resolve, reject) => {
                 const img = new Image();
