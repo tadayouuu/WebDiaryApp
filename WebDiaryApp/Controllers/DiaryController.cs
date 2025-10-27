@@ -124,7 +124,6 @@ namespace WebDiaryApp.Controllers
 						var uri = new Uri(entry.ImageUrl);
 
 						// ✅ Supabaseの仕様に完全一致するようにパスを抽出
-						// ex: /storage/v1/object/public/images/uploads/ec2993c0.jpg
 						var path = uri.AbsolutePath;
 
 						// /storage/v1/object/public/images/ を削除して残りを取得
@@ -133,7 +132,10 @@ namespace WebDiaryApp.Controllers
 						// 念のためデコード
 						path = Uri.UnescapeDataString(path);
 
-						// 先頭のスラッシュ除去（必要なら）
+						// ✅ "uploads/" で始まってたら除去
+						if (path.StartsWith("uploads/"))
+							path = path.Substring("uploads/".Length);
+
 						if (path.StartsWith("/"))
 							path = path.Substring(1);
 
