@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Net.Http.Headers;
 using WebDiaryApp.Data;
 using WebDiaryApp.Models;
 
@@ -10,10 +11,14 @@ namespace WebDiaryApp.Controllers
 	public class DiaryController : Controller
 	{
 		private readonly ApplicationDbContext _context;
+		private readonly IHttpClientFactory _httpClientFactory;
+		private readonly IConfiguration _config;
 
-		public DiaryController(ApplicationDbContext context)
+		public DiaryController(ApplicationDbContext context, IHttpClientFactory httpClientFactory, IConfiguration config)
 		{
 			_context = context;
+			_httpClientFactory = httpClientFactory;
+			_config = config;
 		}
 
 		// 一覧表示
@@ -25,6 +30,7 @@ namespace WebDiaryApp.Controllers
 				.Where(d => d.UserId == userId)
 				.OrderByDescending(d => d.CreatedAt)
 				.ToListAsync();
+
 			return View(entries);
 		}
 
@@ -41,10 +47,7 @@ namespace WebDiaryApp.Controllers
 		{
 			if (ModelState.IsValid)
 			{
-				// 🧩 現在ログイン中のユーザーIDを取得
 				diaryEntry.UserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-
-				// 日付を自動セット（UTC）
 				diaryEntry.CreatedAt = DateTime.UtcNow;
 
 				_context.Add(diaryEntry);
@@ -55,7 +58,7 @@ namespace WebDiaryApp.Controllers
 			return View(diaryEntry);
 		}
 
-		// 編集フォーム（カードクリック時）
+		// 編集フォーム
 		public async Task<IActionResult> Edit(int id)
 		{
 			var entry = await _context.DiaryEntries.FindAsync(id);
@@ -63,7 +66,7 @@ namespace WebDiaryApp.Controllers
 			return View(entry);
 		}
 
-		// 編集処理（カード内フォームから）
+		// 編集処理
 		[HttpPost]
 		[ValidateAntiForgeryToken]
 		public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Content,Category")] DiaryEntry diaryEntry)
@@ -74,7 +77,6 @@ namespace WebDiaryApp.Controllers
 			{
 				try
 				{
-					// 日付は更新しない
 					var existing = await _context.DiaryEntries.FindAsync(id);
 					if (existing == null) return NotFound();
 
@@ -97,7 +99,7 @@ namespace WebDiaryApp.Controllers
 			return View(diaryEntry);
 		}
 
-		// 削除フォーム（カード内）
+		// 削除処理
 		[HttpPost]
 		[ValidateAntiForgeryToken]
 		public async Task<IActionResult> Delete(int id)
@@ -112,11 +114,47 @@ namespace WebDiaryApp.Controllers
 			}
 			return RedirectToAction(nameof(Index));
 		}
-				public IActionResult Preview(int id)
+
+		// プレビュー表示
+		public IActionResult Preview(int id)
 		{
 			var entry = _context.DiaryEntries.Find(id);
 			if (entry == null) return NotFound();
-			return View(entry); // Preview.cshtml が使われる
+			return View(entry);
+		}
+
+		// 📸 Supabase画像アップロード機能
+		[HttpPost]
+		public async Task<IActionResult> UploadImage(IFormFile file)
+		{
+			if (file == null || file.Length == 0)
+				return BadRequest("ファイルが選択されていません。");
+
+			var supabaseUrl = _config["SUPABASE_URL"];
+			var supabaseKey = _config["SUPABASE_KEY"];
+			var bucket = "images";
+
+			var client = _httpClientFactory.CreateClient();
+			var uniqueName = $"{Guid.NewGuid()}_{file.FileName}";
+			var path = $"uploads/{uniqueName}";
+
+			var uploadUrl = $"{supabaseUrl}/storage/v1/object/{bucket}/{path}";
+
+			using (var content = new StreamContent(file.OpenReadStream()))
+			{
+				content.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType);
+				client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", supabaseKey);
+
+				var response = await client.PostAsync(uploadUrl, content);
+				if (!response.IsSuccessStatusCode)
+				{
+					var error = await response.Content.ReadAsStringAsync();
+					return StatusCode((int)response.StatusCode, error);
+				}
+			}
+
+			var publicUrl = $"{supabaseUrl}/storage/v1/object/public/{bucket}/{path}";
+			return Ok(new { imageUrl = publicUrl });
 		}
 
 		private bool DiaryEntryExists(int id)

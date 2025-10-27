@@ -4,64 +4,68 @@ using WebDiaryApp.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Localization;
 using System.Globalization;
-using Npgsql; // �� Supabase�Ή��ŕK�v
+using Npgsql; // ← Supabase対応に必要
 
 var builder = WebApplication.CreateBuilder(args);
 
 // MVC + Razor Pages
 builder.Services.AddControllersWithViews();
 
-// --- �ڑ�������ݒ� ---
-// ���ϐ� DATABASE_URL�iRender/Supabase�p�j��D�悵�A�Ȃ���� appsettings.json �̒l���g�p
+// --- 接続文字列の設定 ---
+// 環境変数 DATABASE_URL（Render/Supabase用）があればそれを使用。
+// なければ appsettings.json の値を利用。
 var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL")
-    ?? builder.Configuration.GetConnectionString("DefaultConnection");
+	?? builder.Configuration.GetConnectionString("DefaultConnection");
 
-// --- Supabase�Ȃǂ�URL�`����Npgsql�`���ɕϊ� ---
+// --- SupabaseなどのURLをNpgsql接続文字列に変換 ---
 if (connectionString.StartsWith("postgres://") || connectionString.StartsWith("postgresql://"))
 {
-    var uri = new Uri(connectionString);
-    var userInfo = uri.UserInfo.Split(':', 2);
-    var npgsqlBuilder = new NpgsqlConnectionStringBuilder
-    {
-        Host = uri.Host,
-        Port = uri.Port,
-        Username = userInfo[0],
-        Password = userInfo.Length > 1 ? userInfo[1] : "",
-        Database = uri.LocalPath.TrimStart('/'),
-        SslMode = SslMode.Require,
-        TrustServerCertificate = true,
-        Pooling = true
-    };
+	var uri = new Uri(connectionString);
+	var userInfo = uri.UserInfo.Split(':', 2);
+	var npgsqlBuilder = new NpgsqlConnectionStringBuilder
+	{
+		Host = uri.Host,
+		Port = uri.Port,
+		Username = userInfo[0],
+		Password = userInfo.Length > 1 ? userInfo[1] : "",
+		Database = uri.LocalPath.TrimStart('/'),
+		SslMode = SslMode.Require,
+		TrustServerCertificate = true,
+		Pooling = true
+	};
 
-    connectionString = npgsqlBuilder.ConnectionString;
+	connectionString = npgsqlBuilder.ConnectionString;
 }
 
-// --- DbContext �ݒ� ---
+// --- DbContext 設定 ---
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseNpgsql(connectionString));
+	options.UseNpgsql(connectionString));
 
-// --- Identity �ݒ� ---
+// --- Identity 設定 ---
 builder.Services.AddDefaultIdentity<IdentityUser>(options =>
 {
-    options.SignIn.RequireConfirmedAccount = false;
+	options.SignIn.RequireConfirmedAccount = false;
 })
 .AddEntityFrameworkStores<ApplicationDbContext>();
 
+// --- HttpClient を使用可能にする（Supabaseアップロード用） ---
+builder.Services.AddHttpClient();
+
 var app = builder.Build();
 
-// --- ���P�[���ݒ� ---
+// --- ロケール設定（日本語） ---
 var supportedCultures = new[] { new CultureInfo("ja-JP") };
 app.UseRequestLocalization(new RequestLocalizationOptions
 {
-    DefaultRequestCulture = new RequestCulture("ja-JP"),
-    SupportedCultures = supportedCultures,
-    SupportedUICultures = supportedCultures
+	DefaultRequestCulture = new RequestCulture("ja-JP"),
+	SupportedCultures = supportedCultures,
+	SupportedUICultures = supportedCultures
 });
 
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Home/Error");
-    app.UseHsts();
+	app.UseExceptionHandler("/Home/Error");
+	app.UseHsts();
 }
 
 app.UseHttpsRedirection();
@@ -71,17 +75,17 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
-// --- ���[�e�B���O�ݒ� ---
+// --- ルーティング設定 ---
 app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller=Diary}/{action=Index}/{id?}");
+	name: "default",
+	pattern: "{controller=Diary}/{action=Index}/{id?}");
 app.MapRazorPages();
 
-// --- �}�C�O���[�V���������K�p ---
+// --- マイグレーションを自動適用 ---
 using (var scope = app.Services.CreateScope())
 {
-    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    db.Database.Migrate();
+	var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+	db.Database.Migrate();
 }
 
 app.Run();

@@ -18,8 +18,64 @@
         <input class="form-control" name="Category" placeholder="カテゴリを入力" />
     </div>
 
+    <!-- 🖼️ 画像アップロード欄 -->
+    <div class="mb-3">
+        <label class="form-label">画像を選択（任意）</label>
+        <div class="input-group">
+            <input type="file" id="imageUpload" class="form-control" accept="image/*" />
+            <button type="button" id="uploadButton" class="btn btn-outline-primary">アップロード</button>
+        </div>
+        <div class="mt-2">
+            <img id="preview" src="" alt="プレビュー" style="max-width:300px; display:none; border:1px solid #ccc; border-radius:8px;" />
+        </div>
+    </div>
+
     <div class="d-flex gap-2">
         <button type="submit" class="btn btn-success">登録</button>
         <a class="btn btn-secondary" asp-action="Index">キャンセル</a>
     </div>
 </form>
+
+@section Scripts {
+    <script>
+        const uploadButton = document.getElementById("uploadButton");
+        const imageInput = document.getElementById("imageUpload");
+        const preview = document.getElementById("preview");
+
+        uploadButton.addEventListener("click", async () => {
+            const file = imageInput.files[0];
+            if (!file) {
+                alert("画像を選択してください。");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("file", file);
+
+            const response = await fetch("/Diary/UploadImage", {
+                method: "POST",
+                body: formData
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                preview.src = data.imageUrl;
+                preview.style.display = "block";
+
+                // ✅ 必要なら hidden input にURLを保存して一緒にDBへ送信
+                let hiddenInput = document.querySelector("input[name='ImageUrl']");
+                if (!hiddenInput) {
+                    hiddenInput = document.createElement("input");
+                    hiddenInput.type = "hidden";
+                    hiddenInput.name = "ImageUrl";
+                    document.forms[0].appendChild(hiddenInput);
+                }
+                hiddenInput.value = data.imageUrl;
+
+                alert("アップロード成功！");
+            } else {
+                alert("アップロードに失敗しました。");
+            }
+        });
+    </script>
+}
