@@ -38,12 +38,9 @@
 
 @section Scripts {
     <script>
-        const uploadButton = document.getElementById("uploadButton");
-        const imageInput = document.getElementById("imageUpload");
-        const preview = document.getElementById("preview");
-
-        uploadButton.addEventListener("click", async () => {
-            const file = imageInput.files[0];
+        document.getElementById("uploadButton").addEventListener("click", async () => {
+            const fileInput = document.getElementById("imageUpload");
+            const file = fileInput.files[0];
             if (!file) {
                 alert("画像を選択してください。");
                 return;
@@ -59,16 +56,18 @@
 
             if (response.ok) {
                 const data = await response.json();
+                const preview = document.getElementById("preview");
                 preview.src = data.imageUrl;
                 preview.style.display = "block";
 
-                // ✅ 必要なら hidden input にURLを保存して一緒にDBへ送信
-                let hiddenInput = document.querySelector("input[name='ImageUrl']");
+                // ✅ form要素を正確に取得して、その中にhidden inputを追加
+                const form = document.querySelector("form[asp-action='Create']");
+                let hiddenInput = form.querySelector("input[name='ImageUrl']");
                 if (!hiddenInput) {
                     hiddenInput = document.createElement("input");
                     hiddenInput.type = "hidden";
                     hiddenInput.name = "ImageUrl";
-                    document.forms[0].appendChild(hiddenInput);
+                    form.appendChild(hiddenInput);
                 }
                 hiddenInput.value = data.imageUrl;
 
