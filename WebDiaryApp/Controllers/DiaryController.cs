@@ -131,31 +131,52 @@ namespace WebDiaryApp.Controllers
 				return BadRequest("ファイルが選択されていません。");
 
 			var supabaseUrl = _config["SUPABASE_URL"];
-			var supabaseKey = _config["SUPABASE_KEY"];
+			// service_role があれば優先、なければ従来の anon を使う
+			var supabaseKey = _config["SUPABASE_SERVICE_ROLE"] ?? _config["SUPABASE_KEY"];
 			var bucket = "images";
 
+			if (string.IsNullOrWhiteSpace(supabaseUrl) || string.IsNullOrWhiteSpace(supabaseKey))
+				return StatusCode(500, "Supabaseの環境変数(SUPABASE_URL / SUPABASE_SERVICE_ROLE もしくは SUPABASE_KEY)が未設定です。");
+
 			var client = _httpClientFactory.CreateClient();
-			var uniqueName = $"{Guid.NewGuid()}_{file.FileName}";
-			var path = $"uploads/{uniqueName}";
+
+			// ファイル名にスペースや日本語があると安全のためURLエンコード
+			var safeFileName = Uri.EscapeDataString($"{Guid.NewGuid()}_{Path.GetFileName(file.FileName)}");
+			var path = $"uploads/{safeFileName}";
 
 			var uploadUrl = $"{supabaseUrl}/storage/v1/object/{bucket}/{path}";
 
-			using (var content = new StreamContent(file.OpenReadStream()))
-			{
-				content.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType);
-				client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", supabaseKey);
+			using var content = new StreamContent(file.OpenReadStream());
+			content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(file.ContentType ?? "application/octet-stream");
 
-				var response = await client.PostAsync(uploadUrl, content);
-				if (!response.IsSuccessStatusCode)
-				{
-					var error = await response.Content.ReadAsStringAsync();
-					return StatusCode((int)response.StatusCode, error);
-				}
+			// 認可ヘッダ（service_role だと確実に通る）
+			client.DefaultRequestHeaders.Authorization =
+				new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", supabaseKey);
+
+			// 上書きしたくない場合は x-upsert: false（既定falseだが明示）
+			content.Headers.Add("x-upsert", "false");
+
+			HttpResponseMessage response;
+			try
+			{
+				response = await client.PostAsync(uploadUrl, content);
+			}
+			catch (Exception ex)
+			{
+				return StatusCode(500, $"アップロード通信で例外: {ex.Message}");
+			}
+
+			if (!response.IsSuccessStatusCode)
+			{
+				var body = await response.Content.ReadAsStringAsync();
+				// 典型: 401/403 は権限不足（anonキーでInsert不可など）
+				return StatusCode((int)response.StatusCode, $"Storageエラー {response.StatusCode}: {body}");
 			}
 
 			var publicUrl = $"{supabaseUrl}/storage/v1/object/public/{bucket}/{path}";
 			return Ok(new { imageUrl = publicUrl });
 		}
+
 
 		private bool DiaryEntryExists(int id)
 		{
