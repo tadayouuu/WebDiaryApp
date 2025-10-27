@@ -45,7 +45,6 @@
                     <form asp-action="Edit" method="post" class="mb-2">
                         <input type="hidden" name="Id" value="@item.Id" />
                         <input class="form-control mb-2" name="Title" value="@item.Title" placeholder="タイトル" />
-                        <!-- 現在の画像表示 -->
                         @if (!string.IsNullOrEmpty(item.ImageUrl))
                         {
                             <div class="text-center mb-2">
@@ -53,23 +52,13 @@
                                      alt="現在の画像"
                                      class="img-thumbnail"
                                      style="max-width:120px; max-height:120px; object-fit:cover;" />
-                                <!-- 🔻単体削除ボタン -->
-                                <form asp-action="DeleteImage" asp-route-id="@item.Id" method="post" class="mt-1"
-                                      onsubmit="return confirm('画像を削除しますか？');">
-                                    <button type="submit" class="btn btn-outline-danger btn-sm">画像を削除</button>
-                                </form>
                             </div>
                         }
-
-                        <!-- 新しい画像アップロード欄 -->
                         <div class="input-group mb-2">
                             <input type="file" class="form-control imageUpload" accept="image/*" />
                             <button type="button" class="btn btn-outline-primary uploadButton">画像再アップロード</button>
                         </div>
-
-                        <!-- 画像URL保持 -->
                         <input type="hidden" name="ImageUrl" value="@item.ImageUrl" />
-
                         <textarea class="form-control mb-2" name="Content" rows="4">@item.Content</textarea>
                         <input class="form-control mb-2" name="Category" value="@item.Category" placeholder="カテゴリ" />
                         <small class="text-muted">作成日: @createdAtJst.ToString("yyyy-MM-dd HH:mm")</small>
@@ -77,6 +66,14 @@
                             <button type="submit" class="btn btn-primary btn-sm">更新</button>
                         </div>
                     </form>
+
+                    @if (!string.IsNullOrEmpty(item.ImageUrl))
+                    {
+                        <form asp-action="DeleteImage" asp-route-id="@item.Id" method="post" class="mt-1"
+                              onsubmit="return confirm('画像を削除しますか？');">
+                            <button type="submit" class="btn btn-outline-danger btn-sm">画像を削除</button>
+                        </form>
+                    }
 
                     <form asp-action="Delete" method="post" onsubmit="return confirm('本当に削除しますか？');">
                         <input type="hidden" name="id" value="@item.Id" />
@@ -194,34 +191,34 @@
                 }
             });
 
-            $(document).on('click', '.uploadButton', async function () {
-                const $card = $(this).closest('.diary-card');
-                const fileInput = $card.find('.imageUpload')[0];
-                const file = fileInput.files[0];
-                if (!file) {
-                    alert("画像を選択してください。");
-                    return;
-                }
+            // $(document).on('click', '.uploadButton', async function () {
+            //     const $card = $(this).closest('.diary-card');
+            //     const fileInput = $card.find('.imageUpload')[0];
+            //     const file = fileInput.files[0];
+            //     if (!file) {
+            //         alert("画像を選択してください。");
+            //         return;
+            //     }
 
-                const formData = new FormData();
-                formData.append("file", file);
+            //     const formData = new FormData();
+            //     formData.append("file", file);
 
-                const response = await fetch("/Diary/UploadImage", {
-                    method: "POST",
-                    body: formData
-                });
+            //     const response = await fetch("/Diary/UploadImage", {
+            //         method: "POST",
+            //         body: formData
+            //     });
 
-                if (response.ok) {
-                    const data = await response.json();
-                    // hidden input 更新
-                    $card.find('input[name="ImageUrl"]').val(data.imageUrl);
-                    // プレビュー画像（既存）も差し替え
-                    $card.find('img').first().attr('src', data.imageUrl);
-                    alert("画像を更新しました！");
-                } else {
-                    alert("画像のアップロードに失敗しました。");
-                }
-            });
+            //     if (response.ok) {
+            //         const data = await response.json();
+            //         hidden input 更新
+            //         $card.find('input[name="ImageUrl"]').val(data.imageUrl);
+            //         プレビュー画像（既存）も差し替え
+            //         $card.find('img').first().attr('src', data.imageUrl);
+            //         alert("画像を更新しました！");
+            //     } else {
+            //         alert("画像のアップロードに失敗しました。");
+            //     }
+            // });
 
             setTimeout(function () {
                 $('.alert').fadeOut('slow');
