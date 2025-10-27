@@ -17,6 +17,18 @@
     <input class="form-control" value="@Model.Category" readonly />
 </div>
 
+<!-- 🖼️ 画像がある場合のみ表示 -->
+@if (!string.IsNullOrEmpty(Model.ImageUrl))
+{
+    <div class="mb-3 text-center">
+        <label class="form-label d-block">画像</label>
+        <img src="@Model.ImageUrl"
+             alt="日記画像"
+             class="img-fluid rounded shadow-sm"
+             style="max-width: 100%; height: auto;" />
+    </div>
+}
+
 <div class="mb-3">
     <label class="form-label">内容</label>
     <textarea class="form-control" rows="5" readonly>@Model.Content</textarea>
