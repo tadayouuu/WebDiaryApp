@@ -109,13 +109,41 @@ namespace WebDiaryApp.Controllers
 			var entry = await _context.DiaryEntries.FindAsync(id);
 			if (entry != null)
 			{
+				// 🧩 Supabase Storageから画像削除
+				if (!string.IsNullOrEmpty(entry.ImageUrl))
+				{
+					try
+					{
+						var supabaseUrl = "https://klkhzamffrmkvyeiubeo.supabase.co";
+						var supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtsa2h6YW1mZnJta3Z5ZWl1YmVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA2ODA5NTksImV4cCI6MjA3NjI1Njk1OX0.NemJMsY7OOWgOvxLRd107NxIizKdmRKvfSGLIyyQ9cg";
+
+						var client = new Supabase.Client(supabaseUrl, supabaseKey);
+						await client.InitializeAsync();
+
+						// 🧩 画像URLからパス部分を抽出
+						// 例: https://.../storage/v1/object/public/images/uploads/foo.jpg
+						var uri = new Uri(entry.ImageUrl);
+						var path = uri.AbsolutePath.Replace("/storage/v1/object/public/images/", ""); // → uploads/foo.jpg
+
+						var storage = client.Storage.From("images");
+						await storage.Remove(new List<string> { path });
+					}
+					catch (Exception ex)
+					{
+						Console.WriteLine($"[Warn] Supabase画像削除に失敗: {ex.Message}");
+					}
+				}
+
+				// 🧩 DBから日記削除
 				_context.DiaryEntries.Remove(entry);
 				await _context.SaveChangesAsync();
 
 				TempData["FlashMessage"] = "日記を削除しました！";
 			}
+
 			return RedirectToAction(nameof(Index));
 		}
+
 
 		// プレビュー表示
 		public IActionResult Preview(int id)
