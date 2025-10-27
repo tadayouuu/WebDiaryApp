@@ -137,6 +137,7 @@
                 // フォーム系クリックは無視
                 if (
                     $(e.target).closest('form').length ||
+                    $(e.target).is('input, textarea, select, label') ||
                     $(e.target).hasClass('btn') ||
                     $(e.target).closest('.btn').length ||
                     $(e.target).is('input[type=file]')
