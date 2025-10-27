@@ -241,7 +241,7 @@ namespace WebDiaryApp.Controllers
 			}
 
 			TempData["FlashMessage"] = "画像を削除しました！";
-			return RedirectToAction("Edit", new { id });
+			return RedirectToAction("Index");
 		}
 
 		private bool DiaryEntryExists(int id)
