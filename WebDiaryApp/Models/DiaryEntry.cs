@@ -30,5 +30,9 @@ namespace WebDiaryApp.Models
 
 		// 🧩 追加部分（ユーザーごとの日記を識別）
 		public string? UserId { get; set; }
+
+		// 🖼 画像URLを保存
+		public string? ImageUrl { get; set; }
+
 	}
 }

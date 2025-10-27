@@ -43,7 +43,7 @@ namespace WebDiaryApp.Controllers
 		// 新規作成処理
 		[HttpPost]
 		[ValidateAntiForgeryToken]
-		public async Task<IActionResult> Create([Bind("Title,Content,Category")] DiaryEntry diaryEntry)
+		public async Task<IActionResult> Create([Bind("Title,Content,Category,ImageUrl")] DiaryEntry diaryEntry)
 		{
 			if (ModelState.IsValid)
 			{
