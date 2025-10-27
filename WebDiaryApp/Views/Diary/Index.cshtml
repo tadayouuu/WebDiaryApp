@@ -52,6 +52,16 @@
                                      alt="現在の画像"
                                      class="img-thumbnail"
                                      style="max-width:120px; max-height:120px; object-fit:cover;" />
+
+                                <!-- 🔻削除ボタンを画像の下に配置（見た目だけ） -->
+                                <div class="mt-1">
+                                    <form asp-action="DeleteImage" asp-route-id="@item.Id"
+                                          method="post"
+                                          onsubmit="return confirm('画像を削除しますか？');"
+                                          style="display:inline-block;">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm">画像を削除</button>
+                                    </form>
+                                </div>
                             </div>
                         }
                         <div class="input-group mb-2">
@@ -67,13 +77,13 @@
                         </div>
                     </form>
 
-                    @if (!string.IsNullOrEmpty(item.ImageUrl))
+                    @* @if (!string.IsNullOrEmpty(item.ImageUrl))
                     {
                         <form asp-action="DeleteImage" asp-route-id="@item.Id" method="post" class="mt-1"
                               onsubmit="return confirm('画像を削除しますか？');">
                             <button type="submit" class="btn btn-outline-danger btn-sm">画像を削除</button>
                         </form>
-                    }
+                    } *@
 
                     <form asp-action="Delete" method="post" onsubmit="return confirm('本当に削除しますか？');">
                         <input type="hidden" name="id" value="@item.Id" />
@@ -191,35 +201,6 @@
                 }
             });
 
-            // $(document).on('click', '.uploadButton', async function () {
-            //     const $card = $(this).closest('.diary-card');
-            //     const fileInput = $card.find('.imageUpload')[0];
-            //     const file = fileInput.files[0];
-            //     if (!file) {
-            //         alert("画像を選択してください。");
-            //         return;
-            //     }
-
-            //     const formData = new FormData();
-            //     formData.append("file", file);
-
-            //     const response = await fetch("/Diary/UploadImage", {
-            //         method: "POST",
-            //         body: formData
-            //     });
-
-            //     if (response.ok) {
-            //         const data = await response.json();
-            //         hidden input 更新
-            //         $card.find('input[name="ImageUrl"]').val(data.imageUrl);
-            //         プレビュー画像（既存）も差し替え
-            //         $card.find('img').first().attr('src', data.imageUrl);
-            //         alert("画像を更新しました！");
-            //     } else {
-            //         alert("画像のアップロードに失敗しました。");
-            //     }
-            // });
-
             setTimeout(function () {
                 $('.alert').fadeOut('slow');
             }, 3000);
@@ -240,8 +221,14 @@
 
                 // hidden input 更新
                 $card.find('input[name="ImageUrl"]').val(imageUrl);
+                
                 // プレビュー画像更新（最初のimg要素に反映）
-                $card.find('img').first().attr('src', imageUrl);
+                const $img = $card.find('img').first();
+                $img.fadeOut(150, () => {
+                    $img.attr('src', imageUrl);
+                    $img.fadeIn(300).addClass('image-updated');
+                    setTimeout(() => $img.removeClass('image-updated'), 1000);
+                });
                 alert("画像を再アップロードしました！");
             } catch (err) {
                 alert("アップロードに失敗しました: " + err.message);

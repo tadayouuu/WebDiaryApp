@@ -185,3 +185,9 @@ body {
     font-size: 0.95rem;
     text-align: center;
 }
+
+.image-updated {
+    outline: 3px solid #0d6efd; /* Â˜g */
+    box-shadow: 0 0 10px rgba(13,110,253,0.6);
+    transition: all 0.3s ease;
+}
