@@ -109,42 +109,53 @@ namespace WebDiaryApp.Controllers
 			var entry = await _context.DiaryEntries.FindAsync(id);
 			if (entry != null)
 			{
-				// 🧩 Supabase Storageから画像削除
 				if (!string.IsNullOrEmpty(entry.ImageUrl))
 				{
 					try
 					{
-						var supabaseUrl = Environment.GetEnvironmentVariable("SUPABASE_URL") ?? "https://klkhzamffrmkvyeiubeo.supabase.co";
-						var supabaseKey = Environment.GetEnvironmentVariable("SUPABASE_SERVICE_KEY")
-							?? "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtsa2h6YW1mZnJta3Z5ZWl1YmVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA2ODA5NTksImV4cCI6MjA3NjI1Njk1OX0.NemJMsY7OOWgOvxLRd107NxIizKdmRKvfSGLIyyQ9cg";
+						var supabaseUrl = _config["SUPABASE_URL"] ?? "https://klkhzamffrmkvyeiubeo.supabase.co";
+						var supabaseKey = _config["SUPABASE_SERVICE_ROLE"]
+							?? _config["SUPABASE_SERVICE_KEY"]
+							?? _config["SUPABASE_KEY"];
 
 						var client = new Supabase.Client(supabaseUrl, supabaseKey);
 						await client.InitializeAsync();
 
 						var uri = new Uri(entry.ImageUrl);
 
-						// ✅ Supabaseの仕様に完全一致するようにパスを抽出
-						var path = uri.AbsolutePath;
+						// ✅ Supabase Storageキーを抽出
+						var path = uri.AbsolutePath.Replace("/storage/v1/object/public/images/", "");
+						path = Uri.UnescapeDataString(path); // URLエンコード解除
 
-						// /storage/v1/object/public/images/ を削除して残りを取得
-						path = path.Replace("/storage/v1/object/public/images/", "");
-
-						// 念のためデコード
-						path = Uri.UnescapeDataString(path);
-
-						// ✅ "uploads/" で始まってたら除去
-						if (path.StartsWith("uploads/"))
-							path = path.Substring("uploads/".Length);
-
-						if (path.StartsWith("/"))
-							path = path.Substring(1);
+						// ❌ ここで uploads/ を削除してはダメ！
+						// Supabaseの実オブジェクトキーには含まれている
 
 						Console.WriteLine($"[Supabase] 削除対象パス: {path}");
 
 						var storage = client.Storage.From("images");
+
+						// ✅ まずDBのキー（=URLから抽出したpath）で削除
 						var result = await storage.Remove(new List<string> { path });
 
-						Console.WriteLine($"[Supabase] 削除完了: {result?.Count} 件");
+						// ✅ 万一の保険：uploads/ 付き/なし両方試す
+						if (result == null || result.Count == 0)
+						{
+							var candidates = new HashSet<string> {
+						path,
+						path.StartsWith("uploads/") ? path.Replace("uploads/", "") : $"uploads/{path}"
+					};
+							foreach (var candidate in candidates)
+							{
+								var r = await storage.Remove(new List<string> { candidate });
+								if (r?.Count > 0)
+								{
+									Console.WriteLine($"[Supabase] 保険削除成功: {candidate}");
+									break;
+								}
+							}
+						}
+
+						Console.WriteLine($"[Supabase] 削除完了: {result?.Count ?? 0} 件");
 					}
 					catch (Exception ex)
 					{
@@ -152,7 +163,6 @@ namespace WebDiaryApp.Controllers
 					}
 				}
 
-				// 🧩 DBから日記削除
 				_context.DiaryEntries.Remove(entry);
 				await _context.SaveChangesAsync();
 
@@ -161,6 +171,7 @@ namespace WebDiaryApp.Controllers
 
 			return RedirectToAction(nameof(Index));
 		}
+
 
 
 		// プレビュー表示
