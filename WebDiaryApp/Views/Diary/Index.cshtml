@@ -50,9 +50,21 @@
                 <!-- プレビュー -->
                 <div class="card-body preview-form d-none">
                     <h5 class="card-title"><span>📝</span> @item.Title</h5>
+
+                    @* 🖼️ 画像がある場合だけ表示 *@
+                    @if (!string.IsNullOrEmpty(item.ImageUrl))
+                    {
+                        <div class="text-center mb-3">
+                            <img src="@item.ImageUrl"
+                                 alt="日記画像"
+                                 class="img-fluid rounded shadow-sm"
+                                 style="max-width: 100%; height: auto;" />
+                        </div>
+                    }
+
                     <p>@item.Content</p>
                     <div class="badge bg-secondary mt-1">@item.Category</div>
-                    <small class="text-muted">@createdAtJst.ToString("yyyy-MM-dd HH:mm")</small>                  
+                    <small class="text-muted">@createdAtJst.ToString("yyyy-MM-dd HH:mm")</small>
                 </div>
 
                 <div class="card-body d-flex gap-2 mt-2">
