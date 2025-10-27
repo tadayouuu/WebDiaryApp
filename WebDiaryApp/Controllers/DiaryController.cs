@@ -69,7 +69,7 @@ namespace WebDiaryApp.Controllers
 		// 編集処理
 		[HttpPost]
 		[ValidateAntiForgeryToken]
-		public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Content,Category")] DiaryEntry diaryEntry)
+		public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Content,Category,ImageUrl")] DiaryEntry diaryEntry)
 		{
 			if (id != diaryEntry.Id) return NotFound();
 
@@ -83,6 +83,7 @@ namespace WebDiaryApp.Controllers
 					existing.Title = diaryEntry.Title;
 					existing.Content = diaryEntry.Content;
 					existing.Category = diaryEntry.Category;
+					existing.ImageUrl = diaryEntry.ImageUrl; // ← 🧩 これを追加！
 
 					_context.Update(existing);
 					await _context.SaveChangesAsync();
@@ -91,7 +92,8 @@ namespace WebDiaryApp.Controllers
 				}
 				catch (DbUpdateConcurrencyException)
 				{
-					if (!DiaryEntryExists(diaryEntry.Id)) return NotFound();
+					if (!_context.DiaryEntries.Any(e => e.Id == diaryEntry.Id))
+						return NotFound();
 					else throw;
 				}
 				return RedirectToAction(nameof(Index));
