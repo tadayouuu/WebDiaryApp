@@ -80,13 +80,24 @@ namespace WebDiaryApp.Controllers
 					var existing = await _context.DiaryEntries.FindAsync(id);
 					if (existing == null) return NotFound();
 
+					// 🧩 古いURLを退避
+					var oldImageUrl = existing.ImageUrl;
+					var newImageUrl = diaryEntry.ImageUrl;
+
+					// 🧩 DB更新
 					existing.Title = diaryEntry.Title;
 					existing.Content = diaryEntry.Content;
 					existing.Category = diaryEntry.Category;
-					existing.ImageUrl = diaryEntry.ImageUrl; // ← 🧩 これを追加！
+					existing.ImageUrl = newImageUrl;
 
 					_context.Update(existing);
 					await _context.SaveChangesAsync();
+
+					// 🧩 画像が変わったら古いのを削除
+					if (!string.IsNullOrEmpty(oldImageUrl) && oldImageUrl != newImageUrl)
+					{
+						await DeleteImageFromSupabaseAsync(oldImageUrl);
+					}
 
 					TempData["FlashMessage"] = "日記を更新しました！";
 				}
@@ -111,56 +122,7 @@ namespace WebDiaryApp.Controllers
 			{
 				if (!string.IsNullOrEmpty(entry.ImageUrl))
 				{
-					try
-					{
-						var supabaseUrl = _config["SUPABASE_URL"] ?? "https://klkhzamffrmkvyeiubeo.supabase.co";
-						var supabaseKey = _config["SUPABASE_SERVICE_ROLE"]
-							?? _config["SUPABASE_SERVICE_KEY"]
-							?? _config["SUPABASE_KEY"];
-
-						var client = new Supabase.Client(supabaseUrl, supabaseKey);
-						await client.InitializeAsync();
-
-						var uri = new Uri(entry.ImageUrl);
-
-						// ✅ Supabase Storageキーを抽出
-						var path = uri.AbsolutePath.Replace("/storage/v1/object/public/images/", "");
-						path = Uri.UnescapeDataString(path); // URLエンコード解除
-
-						// ❌ ここで uploads/ を削除してはダメ！
-						// Supabaseの実オブジェクトキーには含まれている
-
-						Console.WriteLine($"[Supabase] 削除対象パス: {path}");
-
-						var storage = client.Storage.From("images");
-
-						// ✅ まずDBのキー（=URLから抽出したpath）で削除
-						var result = await storage.Remove(new List<string> { path });
-
-						// ✅ 万一の保険：uploads/ 付き/なし両方試す
-						if (result == null || result.Count == 0)
-						{
-							var candidates = new HashSet<string> {
-						path,
-						path.StartsWith("uploads/") ? path.Replace("uploads/", "") : $"uploads/{path}"
-					};
-							foreach (var candidate in candidates)
-							{
-								var r = await storage.Remove(new List<string> { candidate });
-								if (r?.Count > 0)
-								{
-									Console.WriteLine($"[Supabase] 保険削除成功: {candidate}");
-									break;
-								}
-							}
-						}
-
-						Console.WriteLine($"[Supabase] 削除完了: {result?.Count ?? 0} 件");
-					}
-					catch (Exception ex)
-					{
-						Console.WriteLine($"[Warn] Supabase画像削除に失敗: {ex.Message}");
-					}
+					await DeleteImageFromSupabaseAsync(entry.ImageUrl);
 				}
 
 				_context.DiaryEntries.Remove(entry);
@@ -168,11 +130,8 @@ namespace WebDiaryApp.Controllers
 
 				TempData["FlashMessage"] = "日記を削除しました！";
 			}
-
 			return RedirectToAction(nameof(Index));
 		}
-
-
 
 		// プレビュー表示
 		public IActionResult Preview(int id)
@@ -235,6 +194,36 @@ namespace WebDiaryApp.Controllers
 			var publicUrl = $"{supabaseUrl}/storage/v1/object/public/{bucket}/{path}";
 			return Ok(new { imageUrl = publicUrl });
 		}
+
+		//共通削除メソッド
+		private async Task DeleteImageFromSupabaseAsync(string imageUrl)
+		{
+			try
+			{
+				var supabaseUrl = _config["SUPABASE_URL"] ?? "https://klkhzamffrmkvyeiubeo.supabase.co";
+				var supabaseKey = _config["SUPABASE_SERVICE_ROLE"]
+					?? _config["SUPABASE_SERVICE_KEY"]
+					?? _config["SUPABASE_KEY"];
+
+				var client = new Supabase.Client(supabaseUrl, supabaseKey);
+				await client.InitializeAsync();
+
+				var uri = new Uri(imageUrl);
+				var path = uri.AbsolutePath.Replace("/storage/v1/object/public/images/", "");
+				path = Uri.UnescapeDataString(path);
+
+				Console.WriteLine($"[Supabase] 削除対象パス: {path}");
+				var storage = client.Storage.From("images");
+				var result = await storage.Remove(new List<string> { path });
+
+				Console.WriteLine($"[Supabase] 削除完了: {result?.Count ?? 0} 件");
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine($"[Warn] Supabase画像削除に失敗: {ex.Message}");
+			}
+		}
+
 
 
 		private bool DiaryEntryExists(int id)
