@@ -200,11 +200,26 @@
             try {
                 const imageUrl = await resizeAndUpload(file);
                 $card.find('input[name="ImageUrl"]').val(imageUrl);
+                
+                // 既存の img を探す
+                let $imgs = $card.find('img');
+                if ($imgs.length > 0) {
+                    // 既存画像を全部置換
+                    $imgs.attr('src', imageUrl);
+                } else {
+                    // 🔹 画像が存在しない場合 → 新規に追加
+                    const newImg = $('<img>')
+                        .attr('src', imageUrl)
+                        .addClass('img-thumbnail mt-2')
+                        .css({ maxWidth: '120px', maxHeight: '120px', objectFit: 'cover' });
 
-                // すべての画像を更新（summary/edit/preview）
-                $card.find('img').each(function () {
-                    if (this.src) this.src = imageUrl;
-                });
+                    // 編集フォーム内に追加
+                    $card.find('.input-group').before($('<div class="text-center mb-2">').append(newImg));
+
+                    // 一覧ビュー（summary）にも生成
+                    const newThumb = newImg.clone().css({ width: '120px', height: '120px' });
+                    $card.find('.summary .card-text').before($('<div class="text-center mb-2">').append(newThumb));
+                }
 
                 // 軽いアニメーション
                 const $thumb = $card.find('.summary img');
