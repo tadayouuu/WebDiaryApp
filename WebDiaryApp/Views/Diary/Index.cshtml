@@ -40,11 +40,13 @@
                     <div class="badge bg-secondary mt-1 category-badge" data-category="@item.Category">@item.Category</div>
                 </div>
 
-                <!-- 編集フォーム -->
                 <div class="card-body edit-form d-none">
+
+                    <!-- 編集フォーム -->
                     <form asp-action="Edit" method="post" class="mb-2">
                         <input type="hidden" name="Id" value="@item.Id" />
                         <input class="form-control mb-2" name="Title" value="@item.Title" placeholder="タイトル" />
+
                         @if (!string.IsNullOrEmpty(item.ImageUrl))
                         {
                             <div class="text-center mb-2">
@@ -52,39 +54,38 @@
                                      alt="現在の画像"
                                      class="img-thumbnail"
                                      style="max-width:120px; max-height:120px; object-fit:cover;" />
-
-                                <!-- 🔻削除ボタンを画像の下に配置（見た目だけ） -->
-                                <div class="mt-1">
-                                    <form asp-action="DeleteImage" asp-route-id="@item.Id"
-                                          method="post"
-                                          onsubmit="return confirm('画像を削除しますか？');"
-                                          style="display:inline-block;">
-                                        <button type="submit" class="btn btn-outline-danger btn-sm">画像を削除</button>
-                                    </form>
-                                </div>
                             </div>
                         }
+
                         <div class="input-group mb-2">
                             <input type="file" class="form-control imageUpload" accept="image/*" />
                             <button type="button" class="btn btn-outline-primary uploadButton">画像再アップロード</button>
                         </div>
+
                         <input type="hidden" name="ImageUrl" value="@item.ImageUrl" />
                         <textarea class="form-control mb-2" name="Content" rows="4">@item.Content</textarea>
                         <input class="form-control mb-2" name="Category" value="@item.Category" placeholder="カテゴリ" />
                         <small class="text-muted">作成日: @createdAtJst.ToString("yyyy-MM-dd HH:mm")</small>
+
                         <div class="d-flex gap-2 mt-2">
                             <button type="submit" class="btn btn-primary btn-sm">更新</button>
                         </div>
                     </form>
 
-                    @* @if (!string.IsNullOrEmpty(item.ImageUrl))
+                    <!-- 🔻画像削除フォーム（Editの外に出す！） -->
+                    @if (!string.IsNullOrEmpty(item.ImageUrl))
                     {
-                        <form asp-action="DeleteImage" asp-route-id="@item.Id" method="post" class="mt-1"
-                              onsubmit="return confirm('画像を削除しますか？');">
-                            <button type="submit" class="btn btn-outline-danger btn-sm">画像を削除</button>
-                        </form>
-                    } *@
+                        <div class="text-center mb-2">
+                            <form asp-action="DeleteImage" asp-route-id="@item.Id"
+                                  method="post"
+                                  onsubmit="return confirm('画像を削除しますか？');"
+                                  style="display:inline-block;">
+                                <button type="submit" class="btn btn-outline-danger btn-sm">画像を削除</button>
+                            </form>
+                        </div>
+                    }
 
+                    <!-- 日記削除フォーム -->
                     <form asp-action="Delete" method="post" onsubmit="return confirm('本当に削除しますか？');">
                         <input type="hidden" name="id" value="@item.Id" />
                         <button type="submit" class="btn btn-danger btn-sm">削除</button>
