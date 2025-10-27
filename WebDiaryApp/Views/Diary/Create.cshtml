@@ -56,13 +56,21 @@
 
             if (response.ok) {
                 const data = await response.json();
+
+                // ✅ プレビュー表示
                 const preview = document.getElementById("preview");
                 preview.src = data.imageUrl;
                 preview.style.display = "block";
 
-                // ✅ form要素を正確に取得して、その中にhidden inputを追加
-                const form = document.querySelector("form[asp-action='Create']");
-                let hiddenInput = form.querySelector("input[name='ImageUrl']");
+                // ✅ Razor出力後のHTMLでは action="/Diary/Create" になる！
+                //    → これを元に form を取得するのが確実。
+                const form = document.querySelector('form[action$="/Diary/Create"]');
+                if (!form) {
+                    alert("フォームが見つかりません。");
+                    return;
+                }
+
+                let hiddenInput = form.querySelector('input[name="ImageUrl"]');
                 if (!hiddenInput) {
                     hiddenInput = document.createElement("input");
                     hiddenInput.type = "hidden";
@@ -71,6 +79,7 @@
                 }
                 hiddenInput.value = data.imageUrl;
 
+                console.log("✅ Hidden input set:", hiddenInput.value);
                 alert("アップロード成功！");
             } else {
                 alert("アップロードに失敗しました。");
