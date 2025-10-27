@@ -120,13 +120,22 @@ namespace WebDiaryApp.Controllers
 						var client = new Supabase.Client(supabaseUrl, supabaseKey);
 						await client.InitializeAsync();
 
-						// 🧩 画像URLからパス部分を抽出
-						// 例: https://.../storage/v1/object/public/images/uploads/foo.jpg
 						var uri = new Uri(entry.ImageUrl);
-						var path = uri.AbsolutePath.Replace("/storage/v1/object/public/images/", ""); // → uploads/foo.jpg
+						// 絶対パス部分から "public/images/" より後ろを取得
+						var pathStart = uri.AbsolutePath.IndexOf("public/images/");
+						if (pathStart >= 0)
+						{
+							var path = uri.AbsolutePath.Substring(pathStart + "public/images/".Length);
 
-						var storage = client.Storage.From("images");
-						await storage.Remove(new List<string> { path });
+							var storage = client.Storage.From("images");
+							var result = await storage.Remove(new List<string> { path });
+
+							Console.WriteLine($"[Supabase] 削除結果: {result}");
+						}
+						else
+						{
+							Console.WriteLine("[Supabase] URL解析に失敗しました: " + entry.ImageUrl);
+						}
 					}
 					catch (Exception ex)
 					{
