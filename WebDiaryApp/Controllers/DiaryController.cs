@@ -224,7 +224,25 @@ namespace WebDiaryApp.Controllers
 			}
 		}
 
+		//画像単体削除
+		[HttpPost]
+		public async Task<IActionResult> DeleteImage(int id)
+		{
+			var entry = await _context.DiaryEntries.FindAsync(id);
+			if (entry == null)
+				return NotFound();
 
+			if (!string.IsNullOrEmpty(entry.ImageUrl))
+			{
+				await DeleteImageFromSupabaseAsync(entry.ImageUrl);
+				entry.ImageUrl = null;
+				_context.Update(entry);
+				await _context.SaveChangesAsync();
+			}
+
+			TempData["FlashMessage"] = "画像を削除しました！";
+			return RedirectToAction("Edit", new { id });
+		}
 
 		private bool DiaryEntryExists(int id)
 		{
