@@ -59,12 +59,9 @@
 
                                 <!-- 削除ボタン（別フォームだが画像近くに見せる） -->
                                 <div class="delete-image-wrapper">
-                                    @* <form asp-action="DeleteImage" asp-route-id="@item.Id"
+                                    <form asp-controller="Diary" asp-action="DeleteImage" asp-route-id="@item.Id"
                                           method="post"
                                           onsubmit="return confirm('画像を削除しますか？');">
-                                        <button type="submit" class="btn btn-outline-danger btn-sm">✖</button>
-                                    </form> *@
-                                    <form class="delete-image-form" data-id="@item.Id">
                                         <button type="submit" class="btn btn-outline-danger btn-sm">✖</button>
                                     </form>
                                 </div>
@@ -240,33 +237,33 @@
         });
 
         // ---- 画像削除AJAX ----
-        $(document).on('submit', '.delete-image-form', async function (e) {
-            e.preventDefault();
-            if (!confirm('画像を削除しますか？')) return;
+        // $(document).on('submit', '.delete-image-form', async function (e) {
+        //     e.preventDefault();
+        //     if (!confirm('画像を削除しますか？')) return;
 
-            const id = $(this).data('id');
-            try {
-                // ✅ 絶対パスにすることで /Diary/Edit への誤リダイレクトを防ぐ
-                const response = await fetch(`/Diary/DeleteImage?id=${id}`, {
-                    method: 'POST',
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' } // MVC側で判定可能に
-                });
+        //     const id = $(this).data('id');
+        //     try {
+        //         ✅ 絶対パスにすることで /Diary/Edit への誤リダイレクトを防ぐ
+        //         const response = await fetch(`/Diary/DeleteImage?id=${id}`, {
+        //             method: 'POST',
+        //             headers: { 'X-Requested-With': 'XMLHttpRequest' } MVC側で判定可能に
+        //         });
 
-                const result = await response.json();
+        //         const result = await response.json();
 
-                if (result.success) {
-                    const $card = $(this).closest('.diary-card');
-                    $card.find('img').fadeOut(300, function () { $(this).remove(); });
-                    $card.find('.summary img').remove();
-                    $card.find('input[name="ImageUrl"]').val('');
-                    alert('画像を削除しました！');
-                } else {
-                    alert('削除に失敗しました。');
-                }
-            } catch (err) {
-                alert('通信エラー: ' + err.message);
-            }
-        });
+        //         if (result.success) {
+        //             const $card = $(this).closest('.diary-card');
+        //             $card.find('img').fadeOut(300, function () { $(this).remove(); });
+        //             $card.find('.summary img').remove();
+        //             $card.find('input[name="ImageUrl"]').val('');
+        //             alert('画像を削除しました！');
+        //         } else {
+        //             alert('削除に失敗しました。');
+        //         }
+        //     } catch (err) {
+        //         alert('通信エラー: ' + err.message);
+        //     }
+        // });
 
         // ---- 圧縮関数 ----
         async function resizeAndUpload(file) {

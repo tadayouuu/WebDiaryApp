@@ -226,10 +226,15 @@ namespace WebDiaryApp.Controllers
 
 		//画像単体削除
 		[HttpPost]
+		[ValidateAntiForgeryToken]
 		public async Task<IActionResult> DeleteImage(int id)
 		{
 			var entry = await _context.DiaryEntries.FirstOrDefaultAsync(e => e.Id == id);
-			if (entry == null) return Json(new { success = false, message = "Not found" });
+			if (entry == null)
+			{
+				TempData["FlashMessage"] = "対象の日記が見つかりません。";
+				return RedirectToAction("Index");
+			}
 
 			if (!string.IsNullOrEmpty(entry.ImageUrl))
 			{
@@ -239,11 +244,8 @@ namespace WebDiaryApp.Controllers
 				await _context.SaveChangesAsync();
 			}
 
-			// ✅ AJAX経由なら JSON、それ以外なら Redirect
-			if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
-				return Json(new { success = true });
-			else
-				return RedirectToAction("Index");
+			TempData["FlashMessage"] = "画像を削除しました！";
+			return RedirectToAction("Index");
 		}
 
 		private bool DiaryEntryExists(int id)
