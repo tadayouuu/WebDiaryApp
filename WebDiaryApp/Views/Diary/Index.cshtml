@@ -246,14 +246,16 @@
 
             const id = $(this).data('id');
             try {
-                const response = await fetch(`/Diary/DeleteImage/${id}`, {
-                    method: 'POST'
+                // ✅ 絶対パスにすることで /Diary/Edit への誤リダイレクトを防ぐ
+                const response = await fetch(`/Diary/DeleteImage?id=${id}`, {
+                    method: 'POST',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' } // MVC側で判定可能に
                 });
+
                 const result = await response.json();
 
                 if (result.success) {
                     const $card = $(this).closest('.diary-card');
-                    // サムネ・編集フォームの画像を削除
                     $card.find('img').fadeOut(300, function () { $(this).remove(); });
                     $card.find('.summary img').remove();
                     $card.find('input[name="ImageUrl"]').val('');

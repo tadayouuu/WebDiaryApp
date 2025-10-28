@@ -239,7 +239,11 @@ namespace WebDiaryApp.Controllers
 				await _context.SaveChangesAsync();
 			}
 
-			return Json(new { success = true });
+			// ✅ AJAX経由なら JSON、それ以外なら Redirect
+			if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+				return Json(new { success = true });
+			else
+				return RedirectToAction("Index");
 		}
 
 		private bool DiaryEntryExists(int id)
