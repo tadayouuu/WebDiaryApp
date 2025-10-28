@@ -171,7 +171,20 @@ namespace WebDiaryApp.Controllers
 					?? _config["SUPABASE_SERVICE_KEY"]
 					?? _config["SUPABASE_KEY"];
 
-				var client = new Supabase.Client(supabaseUrl, supabaseKey);
+				if (string.IsNullOrEmpty(supabaseUrl) || string.IsNullOrEmpty(supabaseKey))
+				{
+					Console.WriteLine("[Warn] Supabaseの環境変数が不足しています。削除スキップ。");
+					return;
+				}
+
+				var options = new Supabase.SupabaseOptions
+				{
+					AutoConnectRealtime = false,
+					AutoRefreshToken = false
+				};
+
+				// ✅ 正しい初期化
+				var client = new Supabase.Client(supabaseUrl, supabaseKey, options);
 				await client.InitializeAsync();
 
 				var uri = new Uri(imageUrl);
@@ -179,12 +192,15 @@ namespace WebDiaryApp.Controllers
 				path = Uri.UnescapeDataString(path);
 
 				var storage = client.Storage.From("images");
-				await storage.Remove(new List<string> { path });
+				var result = await storage.Remove(new List<string> { path });
+
+				Console.WriteLine($"[Supabase] 削除完了: {result?.Count ?? 0} 件");
 			}
 			catch (Exception ex)
 			{
-				Console.WriteLine($"[Warn] Supabase削除失敗: {ex.Message}");
+				Console.WriteLine($"[Warn] Supabase画像削除に失敗: {ex.Message}");
 			}
 		}
+
 	}
 }
