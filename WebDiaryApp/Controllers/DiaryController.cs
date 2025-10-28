@@ -22,13 +22,24 @@ namespace WebDiaryApp.Controllers
 		}
 
 		// 一覧
-		public async Task<IActionResult> Index()
+		//public async Task<IActionResult> Index()
+		//{
+		//	var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+		//	var entries = await _context.DiaryEntries
+		//		.Where(d => d.UserId == userId)
+		//		.OrderByDescending(d => d.CreatedAt)
+		//		.ToListAsync();
+		//	return View(entries);
+		//}
+
+		public async Task<IActionResult> Index(string? category)
 		{
 			var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-			var entries = await _context.DiaryEntries
-				.Where(d => d.UserId == userId)
-				.OrderByDescending(d => d.CreatedAt)
-				.ToListAsync();
+			var query = _context.DiaryEntries.Where(d => d.UserId == userId);
+			if (!string.IsNullOrEmpty(category))
+				query = query.Where(d => d.Category == category);
+			var entries = await query.OrderByDescending(d => d.CreatedAt).ToListAsync();
+			ViewBag.SelectedCategory = category;
 			return View(entries);
 		}
 

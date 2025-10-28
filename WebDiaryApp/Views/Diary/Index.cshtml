@@ -94,6 +94,13 @@
                 modal.show();
             });
 
+            // ✅ カテゴリーフィルター
+            $('.category-filter').on('click', function(e){
+                e.stopPropagation(); // カードクリック防止
+                const cat = $(this).data('category');
+                window.location.href = `/Diary/Index?category=${encodeURIComponent(cat)}`;
+            });
+
             // ✅ アラート自動フェードアウト
             setTimeout(() => $('.alert').fadeOut('slow'), 3000);
         });
