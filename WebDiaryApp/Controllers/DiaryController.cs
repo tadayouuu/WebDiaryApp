@@ -228,25 +228,19 @@ namespace WebDiaryApp.Controllers
 		[HttpPost]
 		public async Task<IActionResult> DeleteImage(int id)
 		{
-			var entry = await _context.DiaryEntries
-				.AsNoTracking() // ← 追跡外すことで安全更新
-				.FirstOrDefaultAsync(e => e.Id == id);
+			var entry = await _context.DiaryEntries.FirstOrDefaultAsync(e => e.Id == id);
 			if (entry == null) return NotFound();
 
 			if (!string.IsNullOrEmpty(entry.ImageUrl))
 			{
 				await DeleteImageFromSupabaseAsync(entry.ImageUrl);
-
-				// 🔹 必要な部分だけ更新する
 				entry.ImageUrl = null;
-				_context.Attach(entry);
-				_context.Entry(entry).Property(e => e.ImageUrl).IsModified = true;
-
+				_context.Update(entry);
 				await _context.SaveChangesAsync();
 			}
 
-			TempData["FlashMessage"] = "画像を削除しました！";
-			return RedirectToAction("Index");
+			// 部分更新用に JSON を返す（AJAX対応）
+			return Json(new { success = true });
 		}
 
 		private bool DiaryEntryExists(int id)

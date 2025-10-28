@@ -45,6 +45,7 @@
                 <!-- 編集フォーム -->
                 <div class="card-body edit-form d-none">
                     <form asp-action="Edit" method="post" class="mb-2">
+                        @Html.AntiForgeryToken()
                         <input type="hidden" name="Id" value="@item.Id" />
                         <input class="form-control mb-2" name="Title" value="@item.Title" placeholder="タイトル" />
 
@@ -58,9 +59,12 @@
 
                                 <!-- 削除ボタン（別フォームだが画像近くに見せる） -->
                                 <div class="delete-image-wrapper">
-                                    <form asp-action="DeleteImage" asp-route-id="@item.Id"
+                                    @* <form asp-action="DeleteImage" asp-route-id="@item.Id"
                                           method="post"
                                           onsubmit="return confirm('画像を削除しますか？');">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm">✖</button>
+                                    </form> *@
+                                    <form class="delete-image-form" data-id="@item.Id">
                                         <button type="submit" class="btn btn-outline-danger btn-sm">✖</button>
                                     </form>
                                 </div>
@@ -232,6 +236,32 @@
                 alert("画像を再アップロードしました！");
             } catch (err) {
                 alert("アップロードに失敗しました: " + err.message);
+            }
+        });
+
+        // ---- 画像削除AJAX ----
+        $(document).on('submit', '.delete-image-form', async function (e) {
+            e.preventDefault();
+            if (!confirm('画像を削除しますか？')) return;
+
+            const id = $(this).data('id');
+            try {
+                const response = await fetch(`/Diary/DeleteImage/${id}`, {
+                    method: 'POST'
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    const $card = $(this).closest('.diary-card');
+                    // サムネ・編集フォームの画像を削除
+                    $card.find('img').fadeOut(300, function () { $(this).remove(); });
+                    $card.find('input[name="ImageUrl"]').val('');
+                    alert('画像を削除しました！');
+                } else {
+                    alert('削除に失敗しました。');
+                }
+            } catch (err) {
+                alert('通信エラー: ' + err.message);
             }
         });
 
