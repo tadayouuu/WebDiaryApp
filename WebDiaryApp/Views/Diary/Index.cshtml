@@ -18,7 +18,7 @@
         var jst = TimeZoneInfo.FindSystemTimeZoneById("Tokyo Standard Time");
         var createdAtJst = TimeZoneInfo.ConvertTimeFromUtc(item.CreatedAt, jst);
 
-        <div class="col">
+        @* <div class="col">
             <div class="card shadow-sm">
                 <div class="card-body">
                     <h5 class="card-title">@item.Title</h5>
@@ -45,7 +45,36 @@
                     </div>
                 </div>
             </div>
+        </div> *@
+        <div class="col">
+            <div class="card shadow-sm diary-card" data-id="@item.Id" style="cursor:pointer;">
+                <div class="card-body">
+                    <h5 class="card-title">@item.Title</h5>
+
+                    @if (!string.IsNullOrEmpty(item.ImageUrl))
+                    {
+                        <div class="text-center mb-2">
+                            <img src="@item.ImageUrl" class="img-thumbnail"
+                                 style="max-width:120px; max-height:120px; object-fit:cover;" />
+                        </div>
+                    }
+
+                    <p class="card-text text-truncate">@item.Content</p>
+                    <div class="badge bg-secondary category-filter" data-category="@item.Category">@item.Category</div>
+                    <small class="text-muted d-block text-end">@createdAtJst.ToString("yyyy-MM-dd HH:mm")</small>
+
+                    <div class="mt-2 d-flex gap-2">
+                        <form asp-action="Delete" method="post" onsubmit="return confirm('本当に削除しますか？');">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@item.Id" />
+                            <button type="submit" class="btn btn-danger btn-sm">削除</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </div>
+
+
     }
 </div>
 
@@ -53,4 +82,22 @@
     <script>
         setTimeout(() => $('.alert').fadeOut('slow'), 3000);
     </script>
+    <script>
+        $(function(){
+             // ✅ カードクリック → 編集へ
+            $('.diary-card').on('click', function(e){
+                // ❗ 削除ボタンやカテゴリバッジがクリックされた場合はスルー
+                if ($(e.target).closest('form, .btn, .category-filter').length) return;
+                const id = $(this).data('id');
+                window.location.href = `/Diary/Edit/${id}`;
+            });
+
+            // ✅ 背景クリックで一覧へ戻る
+            $(document).on('click', function(e){
+                if ($(e.target).closest('.diary-card').length === 0)
+                    window.location.href = '/Diary/Index';
+            });
+        });
+    </script>
+
 }
