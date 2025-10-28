@@ -38,25 +38,23 @@ namespace WebDiaryApp.Controllers
 		public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Content,Category,ImageUrl")] DiaryEntry diaryEntry)
 		{
 			if (id != diaryEntry.Id) return NotFound();
-			if (!ModelState.IsValid) return RedirectToAction(nameof(Index));
 
-			var existing = await _context.DiaryEntries.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id);
+			var existing = await _context.DiaryEntries.FirstOrDefaultAsync(e => e.Id == id);
 			if (existing == null) return NotFound();
 
 			var oldImageUrl = existing.ImageUrl;
 			var newImageUrl = diaryEntry.ImageUrl;
-			var imageChanged = !string.Equals(oldImageUrl, newImageUrl, StringComparison.OrdinalIgnoreCase);
 
-			// 新しいエンティティをAttachして部分更新
-			_context.Attach(diaryEntry);
-			_context.Entry(diaryEntry).Property(e => e.Title).IsModified = true;
-			_context.Entry(diaryEntry).Property(e => e.Content).IsModified = true;
-			_context.Entry(diaryEntry).Property(e => e.Category).IsModified = true;
-			_context.Entry(diaryEntry).Property(e => e.ImageUrl).IsModified = true;
+			// ← フル更新（トラッキング済みオブジェクトに代入）
+			existing.Title = diaryEntry.Title;
+			existing.Content = diaryEntry.Content;
+			existing.Category = diaryEntry.Category;
+			existing.ImageUrl = newImageUrl;
 
 			await _context.SaveChangesAsync();
 
-			if (imageChanged && !string.IsNullOrEmpty(oldImageUrl))
+			// 画像が変更されたら Supabase から削除
+			if (!string.IsNullOrEmpty(oldImageUrl) && oldImageUrl != newImageUrl)
 			{
 				await DeleteImageFromSupabaseAsync(oldImageUrl);
 			}
@@ -70,22 +68,18 @@ namespace WebDiaryApp.Controllers
 		[ValidateAntiForgeryToken]
 		public async Task<IActionResult> DeleteImage(int id)
 		{
-			var existing = await _context.DiaryEntries.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id);
-			if (existing == null)
+			var entry = await _context.DiaryEntries.FirstOrDefaultAsync(e => e.Id == id);
+			if (entry == null)
 			{
 				TempData["FlashMessage"] = "対象の日記が見つかりません。";
 				return RedirectToAction("Index");
 			}
 
-			if (!string.IsNullOrEmpty(existing.ImageUrl))
+			if (!string.IsNullOrEmpty(entry.ImageUrl))
 			{
-				await DeleteImageFromSupabaseAsync(existing.ImageUrl);
-				existing.ImageUrl = null;
-
-				// AttachしてImageUrlだけ更新
-				_context.Attach(existing);
-				_context.Entry(existing).Property(e => e.ImageUrl).IsModified = true;
-				await _context.SaveChangesAsync();
+				await DeleteImageFromSupabaseAsync(entry.ImageUrl);
+				entry.ImageUrl = null;
+				await _context.SaveChangesAsync(); // ← フル追跡オブジェクトでSave
 			}
 
 			TempData["FlashMessage"] = "画像を削除しました！";
