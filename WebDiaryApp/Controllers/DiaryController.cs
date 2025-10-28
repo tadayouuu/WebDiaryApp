@@ -317,7 +317,7 @@ namespace WebDiaryApp.Controllers
 			return View(entry);
 		}
 
-		// 編集処理
+		// 編集処理（画像変更含む）
 		[HttpPost]
 		[ValidateAntiForgeryToken]
 		public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Content,Category,ImageUrl")] DiaryEntry diaryEntry)
@@ -330,7 +330,9 @@ namespace WebDiaryApp.Controllers
 
 			var oldImageUrl = existing.ImageUrl;
 			var newImageUrl = diaryEntry.ImageUrl;
+			var imageChanged = !string.Equals(oldImageUrl, newImageUrl, StringComparison.OrdinalIgnoreCase);
 
+			// プロパティ更新
 			existing.Title = diaryEntry.Title;
 			existing.Content = diaryEntry.Content;
 			existing.Category = diaryEntry.Category;
@@ -338,12 +340,10 @@ namespace WebDiaryApp.Controllers
 
 			await _context.SaveChangesAsync();
 
-			if (!string.IsNullOrEmpty(oldImageUrl) && !string.IsNullOrEmpty(newImageUrl))
+			// 画像変更時のみ古い画像を削除
+			if (imageChanged && !string.IsNullOrEmpty(oldImageUrl))
 			{
-				var oldFile = Path.GetFileName(oldImageUrl);
-				var newFile = Path.GetFileName(newImageUrl);
-				if (!oldFile.Equals(newFile, StringComparison.OrdinalIgnoreCase))
-					await DeleteImageFromSupabaseAsync(oldImageUrl);
+				await DeleteImageFromSupabaseAsync(oldImageUrl);
 			}
 
 			TempData["FlashMessage"] = "日記を更新しました！";
@@ -446,7 +446,7 @@ namespace WebDiaryApp.Controllers
 			}
 		}
 
-		// 画像単体削除
+		// 画像単体削除（追跡済みエンティティをそのまま使用）
 		[HttpPost]
 		[ValidateAntiForgeryToken]
 		public async Task<IActionResult> DeleteImage(int id)
@@ -462,10 +462,7 @@ namespace WebDiaryApp.Controllers
 			{
 				await DeleteImageFromSupabaseAsync(entry.ImageUrl);
 				entry.ImageUrl = null;
-
-				// ImageUrlのみを部分更新
-				_context.Entry(entry).Property(e => e.ImageUrl).IsModified = true;
-				await _context.SaveChangesAsync();
+				await _context.SaveChangesAsync(); // ← 部分更新でなくフル追跡で保存
 			}
 
 			TempData["FlashMessage"] = "画像を削除しました！";
