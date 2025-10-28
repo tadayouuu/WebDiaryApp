@@ -255,6 +255,7 @@
                     const $card = $(this).closest('.diary-card');
                     // サムネ・編集フォームの画像を削除
                     $card.find('img').fadeOut(300, function () { $(this).remove(); });
+                    $card.find('.summary img').remove();
                     $card.find('input[name="ImageUrl"]').val('');
                     alert('画像を削除しました！');
                 } else {

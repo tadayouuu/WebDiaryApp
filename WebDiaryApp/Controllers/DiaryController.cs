@@ -229,7 +229,7 @@ namespace WebDiaryApp.Controllers
 		public async Task<IActionResult> DeleteImage(int id)
 		{
 			var entry = await _context.DiaryEntries.FirstOrDefaultAsync(e => e.Id == id);
-			if (entry == null) return NotFound();
+			if (entry == null) return Json(new { success = false, message = "Not found" });
 
 			if (!string.IsNullOrEmpty(entry.ImageUrl))
 			{
@@ -239,7 +239,6 @@ namespace WebDiaryApp.Controllers
 				await _context.SaveChangesAsync();
 			}
 
-			// 部分更新用に JSON を返す（AJAX対応）
 			return Json(new { success = true });
 		}
 
