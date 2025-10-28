@@ -18,34 +18,6 @@
         var jst = TimeZoneInfo.FindSystemTimeZoneById("Tokyo Standard Time");
         var createdAtJst = TimeZoneInfo.ConvertTimeFromUtc(item.CreatedAt, jst);
 
-        @* <div class="col">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title">@item.Title</h5>
-
-                    @if (!string.IsNullOrEmpty(item.ImageUrl))
-                    {
-                        <div class="text-center mb-2">
-                            <img src="@item.ImageUrl" class="img-thumbnail" style="max-width:120px; max-height:120px; object-fit:cover;" />
-                        </div>
-                    }
-
-                    <p class="card-text text-truncate">@item.Content</p>
-                    <div class="badge bg-secondary">@item.Category</div>
-                    <small class="text-muted d-block text-end">@createdAtJst.ToString("yyyy-MM-dd HH:mm")</small>
-
-                    <div class="mt-2 d-flex gap-2">
-                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-primary btn-sm">編集</a>
-
-                        <form asp-action="Delete" method="post" onsubmit="return confirm('本当に削除しますか？');">
-                            @Html.AntiForgeryToken()
-                            <input type="hidden" name="id" value="@item.Id" />
-                            <button type="submit" class="btn btn-danger btn-sm">削除</button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div> *@
         <div class="col">
             <div class="card shadow-sm diary-card" data-id="@item.Id" style="cursor:pointer;">
                 <div class="card-body">
@@ -60,11 +32,23 @@
                     }
 
                     <p class="card-text text-truncate">@item.Content</p>
-                    <div class="badge bg-secondary category-filter" data-category="@item.Category">@item.Category</div>
-                    <small class="text-muted d-block text-end">@createdAtJst.ToString("yyyy-MM-dd HH:mm")</small>
+                    <button type="button"
+                            class="btn btn-link p-0 preview-btn"
+                            data-content="@item.Content">
+                        プレビュー
+                    </button>
+
+                    <div class="badge bg-secondary category-filter" data-category="@item.Category">
+                        @item.Category
+                    </div>
+
+                    <small class="text-muted d-block text-end">
+                        @createdAtJst.ToString("yyyy-MM-dd HH:mm")
+                    </small>
 
                     <div class="mt-2 d-flex gap-2">
-                        <form asp-action="Delete" method="post" onsubmit="return confirm('本当に削除しますか？');">
+                        <form asp-action="Delete" method="post"
+                              onsubmit="return confirm('本当に削除しますか？');">
                             @Html.AntiForgeryToken()
                             <input type="hidden" name="id" value="@item.Id" />
                             <button type="submit" class="btn btn-danger btn-sm">削除</button>
@@ -73,31 +57,45 @@
                 </div>
             </div>
         </div>
-
-
     }
+</div>
+
+<!-- 🪶 本文プレビュー用モーダル -->
+<div class="modal fade" id="previewModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">本文プレビュー</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="previewContent"></div>
+        </div>
+    </div>
 </div>
 
 @section Scripts {
     <script>
-        setTimeout(() => $('.alert').fadeOut('slow'), 3000);
-    </script>
-    <script>
-        $(function(){
-             // ✅ カードクリック → 編集へ
-            $('.diary-card').on('click', function(e){
-                // ❗ 削除ボタンやカテゴリバッジがクリックされた場合はスルー
+        $(function () {
+            // ✅ カードクリック → 編集画面へ
+            $('.diary-card').on('click', function (e) {
+                // ❗ 削除ボタンやカテゴリバッジ、プレビューボタンをクリックした場合はスルー
                 if ($(e.target).closest('form, .btn, .category-filter').length) return;
+
                 const id = $(this).data('id');
                 window.location.href = `/Diary/Edit/${id}`;
             });
 
-            // ✅ 背景クリックで一覧へ戻る
-            $(document).on('click', function(e){
-                if ($(e.target).closest('.diary-card').length === 0)
-                    window.location.href = '/Diary/Index';
+            // ✅ プレビュー表示（全文モーダル）
+            $('.preview-btn').on('click', function (e) {
+                e.stopPropagation(); // カードクリックイベントを無効化
+                const content = $(this).data('content');
+                $('#previewContent').text(content);
+                const modal = new bootstrap.Modal(document.getElementById('previewModal'));
+                modal.show();
             });
+
+            // ✅ アラート自動フェードアウト
+            setTimeout(() => $('.alert').fadeOut('slow'), 3000);
         });
     </script>
-
 }
