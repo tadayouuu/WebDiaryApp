@@ -32,20 +32,27 @@ namespace WebDiaryApp.Controllers
 			return View(entries);
 		}
 
-		// 編集処理（Attach方式）
+		// 編集フォーム表示
+		public async Task<IActionResult> Edit(int id)
+		{
+			var entry = await _context.DiaryEntries.FindAsync(id);
+			if (entry == null) return NotFound();
+			return View(entry);
+		}
+
+		// 編集処理
 		[HttpPost]
 		[ValidateAntiForgeryToken]
 		public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Content,Category,ImageUrl")] DiaryEntry diaryEntry)
 		{
 			if (id != diaryEntry.Id) return NotFound();
 
-			var existing = await _context.DiaryEntries.FirstOrDefaultAsync(e => e.Id == id);
+			var existing = await _context.DiaryEntries.FindAsync(id);
 			if (existing == null) return NotFound();
 
 			var oldImageUrl = existing.ImageUrl;
 			var newImageUrl = diaryEntry.ImageUrl;
 
-			// ← フル更新（トラッキング済みオブジェクトに代入）
 			existing.Title = diaryEntry.Title;
 			existing.Content = diaryEntry.Content;
 			existing.Category = diaryEntry.Category;
@@ -53,54 +60,35 @@ namespace WebDiaryApp.Controllers
 
 			await _context.SaveChangesAsync();
 
-			// 画像が変更されたら Supabase から削除
+			// 画像が差し替えられた場合は古い画像を削除
 			if (!string.IsNullOrEmpty(oldImageUrl) && oldImageUrl != newImageUrl)
-			{
 				await DeleteImageFromSupabaseAsync(oldImageUrl);
-			}
 
 			TempData["FlashMessage"] = "日記を更新しました！";
 			return RedirectToAction(nameof(Index));
 		}
 
-		// 画像削除（Attach方式）
-		[HttpPost]
-		[ValidateAntiForgeryToken]
-		public async Task<IActionResult> DeleteImage(int id)
-		{
-			var entry = await _context.DiaryEntries.FirstOrDefaultAsync(e => e.Id == id);
-			if (entry == null)
-			{
-				TempData["FlashMessage"] = "対象の日記が見つかりません。";
-				return RedirectToAction("Index");
-			}
+		// 新規作成フォーム
+		public IActionResult Create() => View();
 
-			if (!string.IsNullOrEmpty(entry.ImageUrl))
-			{
-				await DeleteImageFromSupabaseAsync(entry.ImageUrl);
-				entry.ImageUrl = null;
-				await _context.SaveChangesAsync(); // ← フル追跡オブジェクトでSave
-			}
-
-			TempData["FlashMessage"] = "画像を削除しました！";
-			return RedirectToAction("Index");
-		}
-
-		// 新規作成
+		// 新規作成処理
 		[HttpPost]
 		[ValidateAntiForgeryToken]
 		public async Task<IActionResult> Create([Bind("Title,Content,Category,ImageUrl")] DiaryEntry diaryEntry)
 		{
 			if (!ModelState.IsValid) return View(diaryEntry);
+
 			diaryEntry.UserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
 			diaryEntry.CreatedAt = DateTime.UtcNow;
+
 			_context.Add(diaryEntry);
 			await _context.SaveChangesAsync();
+
 			TempData["FlashMessage"] = "日記を作成しました！";
 			return RedirectToAction(nameof(Index));
 		}
 
-		// 削除
+		// 日記削除
 		[HttpPost]
 		[ValidateAntiForgeryToken]
 		public async Task<IActionResult> Delete(int id)
@@ -113,12 +101,32 @@ namespace WebDiaryApp.Controllers
 
 				_context.DiaryEntries.Remove(entry);
 				await _context.SaveChangesAsync();
+
 				TempData["FlashMessage"] = "日記を削除しました！";
 			}
 			return RedirectToAction(nameof(Index));
 		}
 
-		// Supabaseアップロード
+		// 画像単体削除（Editページから）
+		[HttpPost]
+		[ValidateAntiForgeryToken]
+		public async Task<IActionResult> DeleteImage(int id)
+		{
+			var entry = await _context.DiaryEntries.FindAsync(id);
+			if (entry == null) return NotFound();
+
+			if (!string.IsNullOrEmpty(entry.ImageUrl))
+			{
+				await DeleteImageFromSupabaseAsync(entry.ImageUrl);
+				entry.ImageUrl = null;
+				await _context.SaveChangesAsync();
+			}
+
+			TempData["FlashMessage"] = "画像を削除しました！";
+			return RedirectToAction("Edit", new { id });
+		}
+
+		// Supabase アップロード
 		[HttpPost]
 		public async Task<IActionResult> UploadImage(IFormFile file)
 		{
@@ -128,8 +136,11 @@ namespace WebDiaryApp.Controllers
 			var supabaseUrl = _config["SUPABASE_URL"];
 			var supabaseKey = _config["SUPABASE_SERVICE_ROLE"] ?? _config["SUPABASE_KEY"];
 			var bucket = "images";
-			var client = _httpClientFactory.CreateClient();
 
+			if (string.IsNullOrWhiteSpace(supabaseUrl) || string.IsNullOrWhiteSpace(supabaseKey))
+				return StatusCode(500, "Supabase設定が未設定です。");
+
+			var client = _httpClientFactory.CreateClient();
 			var safeFileName = Uri.EscapeDataString($"{Guid.NewGuid()}_{Path.GetFileName(file.FileName)}");
 			var path = $"uploads/{safeFileName}";
 			var uploadUrl = $"{supabaseUrl}/storage/v1/object/{bucket}/{path}";
@@ -150,7 +161,7 @@ namespace WebDiaryApp.Controllers
 			return Ok(new { imageUrl = publicUrl });
 		}
 
-		// Supabase画像削除
+		// Supabase 画像削除共通
 		private async Task DeleteImageFromSupabaseAsync(string imageUrl)
 		{
 			try
@@ -166,12 +177,13 @@ namespace WebDiaryApp.Controllers
 				var uri = new Uri(imageUrl);
 				var path = uri.AbsolutePath.Replace("/storage/v1/object/public/images/", "");
 				path = Uri.UnescapeDataString(path);
+
 				var storage = client.Storage.From("images");
 				await storage.Remove(new List<string> { path });
 			}
 			catch (Exception ex)
 			{
-				Console.WriteLine($"[Warn] Supabase画像削除失敗: {ex.Message}");
+				Console.WriteLine($"[Warn] Supabase削除失敗: {ex.Message}");
 			}
 		}
 	}

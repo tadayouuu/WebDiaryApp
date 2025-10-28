@@ -1,0 +1,116 @@
+﻿@model WebDiaryApp.Models.DiaryEntry
+
+<h1 class="mb-3">日記を編集</h1>
+
+@if (TempData["FlashMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["FlashMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<form asp-action="Edit" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="Id" value="@Model.Id" />
+
+    <div class="mb-3">
+        <label class="form-label">タイトル</label>
+        <input class="form-control" name="Title" value="@Model.Title" required />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">画像</label><br />
+        @if (!string.IsNullOrEmpty(Model.ImageUrl))
+        {
+            <div class="text-center mb-2 position-relative">
+                <img src="@Model.ImageUrl" class="img-thumbnail" style="max-width:150px; max-height:150px; object-fit:cover;" />
+                <form asp-action="DeleteImage" asp-route-id="@Model.Id" method="post" class="mt-2" onsubmit="return confirm('画像を削除しますか？');">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-outline-danger btn-sm">画像削除</button>
+                </form>
+            </div>
+        }
+
+        <div class="input-group">
+            <input type="file" class="form-control imageUpload" accept="image/*" />
+            <button type="button" class="btn btn-outline-primary uploadButton">画像アップロード</button>
+        </div>
+
+        <input type="hidden" name="ImageUrl" value="@Model.ImageUrl" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">本文</label>
+        <textarea class="form-control" name="Content" rows="5">@Model.Content</textarea>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">カテゴリ</label>
+        <input class="form-control" name="Category" value="@Model.Category" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">更新</button>
+    <a asp-action="Index" class="btn btn-secondary ms-2">戻る</a>
+</form>
+
+@section Scripts {
+    <script>
+        $(document).on('click', '.uploadButton', async function () {
+            const fileInput = document.querySelector('.imageUpload');
+            const file = fileInput.files[0];
+            if (!file) return alert("画像を選択してください。");
+
+            try {
+                const imageUrl = await uploadImage(file);
+                $('input[name="ImageUrl"]').val(imageUrl);
+
+                // プレビュー
+                if ($('img').length > 0)
+                    $('img').attr('src', imageUrl);
+                else
+                    $('.input-group').before(`<div class="text-center mb-2"><img src="${imageUrl}" class="img-thumbnail" style="max-width:150px; max-height:150px; object-fit:cover;" /></div>`);
+
+                alert("画像をアップロードしました！");
+            } catch (err) {
+                alert("アップロード失敗: " + err.message);
+            }
+        });
+
+        async function uploadImage(file) {
+            const maxWidth = 1200, maxHeight = 1200, quality = 0.8;
+            const img = await loadImage(file);
+            const canvas = document.createElement("canvas");
+            let { width, height } = img;
+            if (width > maxWidth || height > maxHeight) {
+                const scale = Math.min(maxWidth / width, maxHeight / height);
+                width = Math.round(width * scale);
+                height = Math.round(height * scale);
+            }
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0, width, height);
+
+            const blob = await new Promise(r => canvas.toBlob(r, "image/jpeg", quality));
+            const formData = new FormData();
+            formData.append("file", new File([blob], file.name.replace(/\.[^.]+$/, ".jpg"), { type: "image/jpeg" }));
+
+            const response = await fetch("/Diary/UploadImage", { method: "POST", body: formData });
+            if (!response.ok) throw new Error(await response.text());
+            const result = await response.json();
+            return result.imageUrl;
+        }
+
+        function loadImage(file) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.onload = () => resolve(img);
+                img.onerror = reject;
+                img.src = URL.createObjectURL(file);
+            });
+        }
+
+        setTimeout(() => $('.alert').fadeOut('slow'), 3000);
+    </script>
+}

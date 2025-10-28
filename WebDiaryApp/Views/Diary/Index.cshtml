@@ -19,287 +19,38 @@
         var createdAtJst = TimeZoneInfo.ConvertTimeFromUtc(item.CreatedAt, jst);
 
         <div class="col">
-            <div class="card shadow-sm diary-card" data-id="@item.Id">
-
-                <!-- 一覧表示部 -->
-                <div class="card-body summary">
-                    <h5 class="card-title"><span>📝</span> @item.Title</h5>
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">@item.Title</h5>
 
                     @if (!string.IsNullOrEmpty(item.ImageUrl))
                     {
                         <div class="text-center mb-2">
-                            <img src="@item.ImageUrl"
-                                 alt="日記画像"
-                                 class="img-thumbnail"
-                                 style="max-width:120px; max-height:120px; object-fit:cover;" />
+                            <img src="@item.ImageUrl" class="img-thumbnail" style="max-width:120px; max-height:120px; object-fit:cover;" />
                         </div>
                     }
 
                     <p class="card-text text-truncate">@item.Content</p>
-                    <small class="text-muted d-block text-end" style="font-size:0.8rem;">
-                        @createdAtJst.ToString("yyyy-MM-dd HH:mm")
-                    </small>
-                    <div class="badge bg-secondary mt-1 category-badge" data-category="@item.Category">@item.Category</div>
-                </div>
+                    <div class="badge bg-secondary">@item.Category</div>
+                    <small class="text-muted d-block text-end">@createdAtJst.ToString("yyyy-MM-dd HH:mm")</small>
 
-                <!-- 編集フォーム -->
-                <div class="card-body edit-form d-none">
-                    <form asp-action="Edit" method="post" class="mb-2">
-                        @Html.AntiForgeryToken()
-                        <input type="hidden" name="Id" value="@item.Id" />
-                        <input class="form-control mb-2" name="Title" value="@item.Title" placeholder="タイトル" />
+                    <div class="mt-2 d-flex gap-2">
+                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-primary btn-sm">編集</a>
 
-                        @if (!string.IsNullOrEmpty(item.ImageUrl))
-                        {
-                            <div class="text-center mb-2 position-relative">
-                                <img src="@item.ImageUrl"
-                                     alt="現在の画像"
-                                     class="img-thumbnail diary-img"
-                                     style="max-width:120px; max-height:120px; object-fit:cover;" />
-
-                                <!-- 削除ボタン（別フォームだが画像近くに見せる） -->
-                                <div class="delete-image-wrapper">
-                                    <form asp-controller="Diary" asp-action="DeleteImage" asp-route-id="@item.Id"
-                                          method="post"
-                                          onsubmit="return confirm('画像を削除しますか？');">
-                                        <button type="submit" class="btn btn-outline-danger btn-sm">✖</button>
-                                    </form>
-                                </div>
-                            </div>
-                        }
-
-                        <div class="input-group mb-2">
-                            <input type="file" class="form-control imageUpload" accept="image/*" />
-                            <button type="button" class="btn btn-outline-primary uploadButton">画像再アップロード</button>
-                        </div>
-
-                        <input type="hidden" name="ImageUrl" value="@item.ImageUrl" />
-                        <textarea class="form-control mb-2" name="Content" rows="4">@item.Content</textarea>
-                        <input class="form-control mb-2" name="Category" value="@item.Category" placeholder="カテゴリ" />
-                        <small class="text-muted">作成日: @createdAtJst.ToString("yyyy-MM-dd HH:mm")</small>
-
-                        <div class="d-flex gap-2 mt-2">
-                            <button type="submit" class="btn btn-primary btn-sm">更新</button>
-                        </div>
-                    </form>
-
-                    <!-- 日記削除 -->
-                    <form asp-action="Delete" method="post" onsubmit="return confirm('本当に削除しますか？');">
-                        <input type="hidden" name="id" value="@item.Id" />
-                        <button type="submit" class="btn btn-danger btn-sm">削除</button>
-                    </form>
-                </div>
-
-                <!-- プレビュー -->
-                <div class="card-body preview-form d-none">
-                    <h5 class="card-title"><span>📝</span> @item.Title</h5>
-                    @if (!string.IsNullOrEmpty(item.ImageUrl))
-                    {
-                        <div class="text-center mb-3">
-                            <img src="@item.ImageUrl"
-                                 alt="日記画像"
-                                 class="img-fluid rounded shadow-sm"
-                                 style="max-width:100%; height:auto;" />
-                        </div>
-                    }
-                    <p>@item.Content</p>
-                    <div class="badge bg-secondary mt-1">@item.Category</div>
-                    <small class="text-muted">@createdAtJst.ToString("yyyy-MM-dd HH:mm")</small>
-                </div>
-
-                <div class="card-body d-flex gap-2 mt-2">
-                    <button type="button" class="btn btn-info btn-sm btn-preview">プレビュー</button>
+                        <form asp-action="Delete" method="post" onsubmit="return confirm('本当に削除しますか？');">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@item.Id" />
+                            <button type="submit" class="btn btn-danger btn-sm">削除</button>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
     }
 </div>
 
-<style>
-    .delete-image-wrapper {
-        position: absolute;
-        top: 4px;
-        right: 6px;
-    }
-
-    .image-updated {
-        outline: 2px solid #198754;
-        box-shadow: 0 0 6px rgba(25,135,84,0.8);
-        transition: all 0.3s ease;
-    }
-</style>
-
 @section Scripts {
     <script>
-        $(document).ready(function () {
-
-            // ---- カード開閉 ----
-            $('.diary-card').off('click').on('click', function (e) {
-                // フォーム系クリックは無視
-                if (
-                    $(e.target).closest('form').length ||
-                    $(e.target).is('input, textarea, select, label') ||
-                    $(e.target).hasClass('btn') ||
-                    $(e.target).closest('.btn').length ||
-                    $(e.target).is('input[type=file]')
-                ) return;
-
-                const $clicked = $(this);
-                if (!$clicked.find('.preview-form').hasClass('d-none')) return;
-
-                $('.diary-card').not($clicked).find('.summary').removeClass('d-none');
-                $('.diary-card').not($clicked).find('.edit-form, .preview-form').addClass('d-none');
-
-                $clicked.find('.summary').toggleClass('d-none');
-                $clicked.find('.edit-form').toggleClass('d-none');
-            });
-
-            // ---- プレビュー切替 ----
-            $('.btn-preview').off('click').on('click', function (e) {
-                e.stopImmediatePropagation();
-                const $card = $(this).closest('.diary-card');
-                $('.diary-card').not($card).find('.summary').removeClass('d-none');
-                $('.diary-card').not($card).find('.edit-form, .preview-form').addClass('d-none');
-                $card.find('.summary, .edit-form').addClass('d-none');
-                $card.find('.preview-form').removeClass('d-none');
-            });
-
-            // ---- 外クリックで閉じる ----
-            $(document).click(function (e) {
-                if ($(e.target).closest('.diary-card').length) return;
-                $('.diary-card').find('.summary').removeClass('d-none');
-                $('.diary-card').find('.edit-form, .preview-form').addClass('d-none');
-            });
-
-            // ---- カテゴリ絞り込み ----
-            $('.category-badge').off('click').on('click', function (e) {
-                e.stopPropagation();
-                const category = $(this).data('category');
-                const isActive = $(this).hasClass('active-category');
-                $('.category-badge').removeClass('active-category');
-                if (!isActive) {
-                    $(this).addClass('active-category');
-                    $('.diary-card').each(function () {
-                        const cardCategory = $(this).find('.category-badge').data('category');
-                        $(this).toggle(cardCategory === category);
-                    });
-                } else {
-                    $('.diary-card').show();
-                }
-            });
-
-            // ---- フラッシュメッセージ自動消去 ----
-            setTimeout(() => $('.alert').fadeOut('slow'), 3000);
-        });
-
-        // ---- 画像再アップロード（圧縮付き） ----
-        $(document).on('click', '.uploadButton', async function () {
-            const $card = $(this).closest('.diary-card');
-            const fileInput = $card.find('.imageUpload')[0];
-            const file = fileInput.files[0];
-            if (!file) return alert("画像を選択してください。");
-
-            try {
-                const imageUrl = await resizeAndUpload(file);
-                $card.find('input[name="ImageUrl"]').val(imageUrl);
-                
-                // 既存の img を探す
-                let $imgs = $card.find('img');
-                if ($imgs.length > 0) {
-                    // 既存画像を全部置換
-                    $imgs.attr('src', imageUrl);
-                } else {
-                    // 🔹 画像が存在しない場合 → 新規に追加
-                    const newImg = $('<img>')
-                        .attr('src', imageUrl)
-                        .addClass('img-thumbnail mt-2')
-                        .css({ maxWidth: '120px', maxHeight: '120px', objectFit: 'cover' });
-
-                    // 編集フォーム内に追加
-                    $card.find('.input-group').before($('<div class="text-center mb-2">').append(newImg));
-
-                    // 一覧ビュー（summary）にも生成
-                    const newThumb = newImg.clone().css({ width: '120px', height: '120px' });
-                    $card.find('.summary .card-text').before($('<div class="text-center mb-2">').append(newThumb));
-                }
-
-                // 軽いアニメーション
-                const $thumb = $card.find('.summary img');
-                $thumb.fadeOut(100, () => {
-                    $thumb.fadeIn(300).addClass('image-updated');
-                    setTimeout(() => $thumb.removeClass('image-updated'), 800);
-                });
-
-                alert("画像を再アップロードしました！");
-            } catch (err) {
-                alert("アップロードに失敗しました: " + err.message);
-            }
-        });
-
-        // ---- 画像削除AJAX ----
-        // $(document).on('submit', '.delete-image-form', async function (e) {
-        //     e.preventDefault();
-        //     if (!confirm('画像を削除しますか？')) return;
-
-        //     const id = $(this).data('id');
-        //     try {
-        //         ✅ 絶対パスにすることで /Diary/Edit への誤リダイレクトを防ぐ
-        //         const response = await fetch(`/Diary/DeleteImage?id=${id}`, {
-        //             method: 'POST',
-        //             headers: { 'X-Requested-With': 'XMLHttpRequest' } MVC側で判定可能に
-        //         });
-
-        //         const result = await response.json();
-
-        //         if (result.success) {
-        //             const $card = $(this).closest('.diary-card');
-        //             $card.find('img').fadeOut(300, function () { $(this).remove(); });
-        //             $card.find('.summary img').remove();
-        //             $card.find('input[name="ImageUrl"]').val('');
-        //             alert('画像を削除しました！');
-        //         } else {
-        //             alert('削除に失敗しました。');
-        //         }
-        //     } catch (err) {
-        //         alert('通信エラー: ' + err.message);
-        //     }
-        // });
-
-        // ---- 圧縮関数 ----
-        async function resizeAndUpload(file) {
-            const maxWidth = 1200, maxHeight = 1200, quality = 0.8;
-            const img = await loadImage(file);
-            const canvas = document.createElement("canvas");
-            let { width, height } = img;
-            if (width > maxWidth || height > maxHeight) {
-                const scale = Math.min(maxWidth / width, maxHeight / height);
-                width = Math.round(width * scale);
-                height = Math.round(height * scale);
-            }
-            canvas.width = width;
-            canvas.height = height;
-            const ctx = canvas.getContext("2d");
-            ctx.drawImage(img, 0, 0, width, height);
-
-            const blob = await new Promise(r => canvas.toBlob(r, "image/jpeg", quality));
-            console.log("Before:", (file.size / 1024).toFixed(1) + "KB");
-            console.log("After:", (blob.size / 1024).toFixed(1) + "KB");
-
-            const formData = new FormData();
-            formData.append("file", new File([blob], file.name.replace(/\.[^.]+$/, ".jpg"), { type: "image/jpeg" }));
-            const response = await fetch("/Diary/UploadImage", { method: "POST", body: formData });
-            if (!response.ok) throw new Error(await response.text());
-            const result = await response.json();
-            return result.imageUrl;
-        }
-
-        function loadImage(file) {
-            return new Promise((resolve, reject) => {
-                const img = new Image();
-                img.onload = () => resolve(img);
-                img.onerror = reject;
-                img.src = URL.createObjectURL(file);
-            });
-        }
+        setTimeout(() => $('.alert').fadeOut('slow'), 3000);
     </script>
 }
