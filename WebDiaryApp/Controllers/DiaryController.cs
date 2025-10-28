@@ -40,14 +40,14 @@ namespace WebDiaryApp.Controllers
 			return View(entry);
 		}
 
-		// 編集処理
+		// ---- 編集処理 ----
 		[HttpPost]
 		[ValidateAntiForgeryToken]
 		public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Content,Category,ImageUrl")] DiaryEntry diaryEntry)
 		{
 			if (id != diaryEntry.Id) return NotFound();
 
-			var existing = await _context.DiaryEntries.FindAsync(id);
+			var existing = await _context.DiaryEntries.AsTracking().FirstOrDefaultAsync(e => e.Id == id);
 			if (existing == null) return NotFound();
 
 			var oldImageUrl = existing.ImageUrl;
@@ -60,12 +60,16 @@ namespace WebDiaryApp.Controllers
 
 			await _context.SaveChangesAsync();
 
-			// 画像が差し替えられた場合は古い画像を削除
-			if (!string.IsNullOrEmpty(oldImageUrl) && oldImageUrl != newImageUrl)
+			// 🔹 Supabase 側の古い画像削除
+			if (!string.IsNullOrEmpty(oldImageUrl) &&
+				!string.IsNullOrEmpty(newImageUrl) &&
+				!oldImageUrl.Equals(newImageUrl, StringComparison.OrdinalIgnoreCase))
+			{
 				await DeleteImageFromSupabaseAsync(oldImageUrl);
+			}
 
 			TempData["FlashMessage"] = "日記を更新しました！";
-			return RedirectToAction(nameof(Index));
+			return RedirectToAction("Edit", new { id }); // ← Indexに戻さない
 		}
 
 		// 新規作成フォーム
@@ -107,23 +111,24 @@ namespace WebDiaryApp.Controllers
 			return RedirectToAction(nameof(Index));
 		}
 
-		// 画像単体削除（Editページから）
+		// ---- 画像単体削除 ----
 		[HttpPost]
 		[ValidateAntiForgeryToken]
 		public async Task<IActionResult> DeleteImage(int id)
 		{
-			var entry = await _context.DiaryEntries.FindAsync(id);
+			var entry = await _context.DiaryEntries.AsTracking().FirstOrDefaultAsync(e => e.Id == id);
 			if (entry == null) return NotFound();
 
-			if (!string.IsNullOrEmpty(entry.ImageUrl))
+			var oldUrl = entry.ImageUrl;
+			if (!string.IsNullOrEmpty(oldUrl))
 			{
-				await DeleteImageFromSupabaseAsync(entry.ImageUrl);
 				entry.ImageUrl = null;
 				await _context.SaveChangesAsync();
+				await DeleteImageFromSupabaseAsync(oldUrl); // ← Saveの後で削除（安全）
 			}
 
 			TempData["FlashMessage"] = "画像を削除しました！";
-			return RedirectToAction("Edit", new { id });
+			return RedirectToAction("Edit", new { id }); // ← Editページに留まる
 		}
 
 		// Supabase アップロード
