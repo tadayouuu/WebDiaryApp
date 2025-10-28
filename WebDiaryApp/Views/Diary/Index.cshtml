@@ -12,6 +12,11 @@
 
 <a class="btn btn-success mb-3" asp-action="Create">新規作成</a>
 
+@if (!string.IsNullOrEmpty(ViewBag.SelectedCategory as string))
+{
+    <a href="@Url.Action("Index")" class="btn btn-outline-secondary mb-3">すべて表示</a>
+}
+
 <div class="row row-cols-1 g-3">
     @foreach (var item in Model.OrderByDescending(d => d.CreatedAt))
     {
@@ -34,7 +39,8 @@
                     <p class="card-text text-truncate">@item.Content</p>
                     <button type="button"
                             class="btn btn-link p-0 preview-btn"
-                            data-content="@item.Content">
+                            data-content="@item.Content"
+                            data-image="@item.ImageUrl">
                         プレビュー
                     </button>
 
@@ -60,7 +66,7 @@
     }
 </div>
 
-<!-- 🪶 本文プレビュー用モーダル -->
+<!-- 🪶 プレビュー用モーダル -->
 <div class="modal fade" id="previewModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-scrollable">
         <div class="modal-content">
@@ -68,7 +74,7 @@
                 <h5 class="modal-title">本文プレビュー</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body" id="previewContent"></div>
+            <div class="modal-body text-center" id="previewBody"></div>
         </div>
     </div>
 </div>
@@ -78,27 +84,43 @@
         $(function () {
             // ✅ カードクリック → 編集画面へ
             $('.diary-card').on('click', function (e) {
-                // ❗ 削除ボタンやカテゴリバッジ、プレビューボタンをクリックした場合はスルー
                 if ($(e.target).closest('form, .btn, .category-filter').length) return;
-
                 const id = $(this).data('id');
                 window.location.href = `/Diary/Edit/${id}`;
             });
 
-            // ✅ プレビュー表示（全文モーダル）
+            // ✅ プレビュー（本文＋画像）
             $('.preview-btn').on('click', function (e) {
-                e.stopPropagation(); // カードクリックイベントを無効化
+                e.stopPropagation();
                 const content = $(this).data('content');
-                $('#previewContent').text(content);
+                const image = $(this).data('image');
+
+                let html = '';
+                if (image) {
+                    html += `<img src="${image}" class="img-fluid mb-3 rounded" style="max-width:300px;">`;
+                }
+                html += `<p class="text-start">${content}</p>`;
+
+                $('#previewBody').html(html);
                 const modal = new bootstrap.Modal(document.getElementById('previewModal'));
                 modal.show();
             });
 
             // ✅ カテゴリーフィルター
             $('.category-filter').on('click', function(e){
-                e.stopPropagation(); // カードクリック防止
+                e.stopPropagation();
                 const cat = $(this).data('category');
                 window.location.href = `/Diary/Index?category=${encodeURIComponent(cat)}`;
+            });
+
+            // ✅ 背景クリックでフィルター解除
+            $(document).on('click', function(e){
+                if ($(e.target).closest('.diary-card, .category-filter, .modal').length === 0) {
+                    const hasCategory = '@(ViewBag.SelectedCategory != null)';
+                    if (hasCategory === 'True') {
+                        window.location.href = '/Diary/Index';
+                    }
+                }
             });
 
             // ✅ アラート自動フェードアウト
