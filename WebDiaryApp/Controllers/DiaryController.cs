@@ -126,16 +126,26 @@ namespace WebDiaryApp.Controllers
 			var entry = await _context.DiaryEntries.AsTracking().FirstOrDefaultAsync(e => e.Id == id);
 			if (entry == null) return NotFound();
 
-			var oldUrl = entry.ImageUrl;
+			var oldUrl = entry.ImageUrl; // ここで確実にコピー
 			if (!string.IsNullOrEmpty(oldUrl))
 			{
+				// ⚠️ Save前に削除開始
+				_logger.LogInformation("[Diary] 単体画像削除開始: {Path}", oldUrl);
+
+				await DeleteImageFromSupabaseAsync(oldUrl);  // ← 先に削除してもDBは無関係なので安全
+
 				entry.ImageUrl = null;
 				await _context.SaveChangesAsync();
-				await DeleteImageFromSupabaseAsync(oldUrl); // ← Saveの後で削除（安全）
+
+				_logger.LogInformation("[Diary] DB上のImageUrlをnullに更新しました (ID={Id})", id);
+			}
+			else
+			{
+				_logger.LogWarning("[Diary] DeleteImage呼び出し時にImageUrlが空でした (ID={Id})", id);
 			}
 
 			TempData["FlashMessage"] = "画像を削除しました！";
-			return RedirectToAction("Edit", new { id }); // ← Editページに留まる
+			return RedirectToAction("Edit", new { id });
 		}
 
 		// Supabase アップロード
@@ -172,47 +182,6 @@ namespace WebDiaryApp.Controllers
 			var publicUrl = $"{supabaseUrl}/storage/v1/object/public/{bucket}/{path}";
 			return Ok(new { imageUrl = publicUrl });
 		}
-
-		// Supabase 画像削除共通
-		//private async Task DeleteImageFromSupabaseAsync(string imageUrl)
-		//{
-		//	try
-		//	{
-		//		var supabaseUrl = _config["SUPABASE_URL"] ?? "https://klkhzamffrmkvyeiubeo.supabase.co";
-		//		var supabaseKey = _config["SUPABASE_SERVICE_ROLE"]
-		//			?? _config["SUPABASE_SERVICE_KEY"]
-		//			?? _config["SUPABASE_KEY"];
-
-		//		if (string.IsNullOrEmpty(supabaseUrl) || string.IsNullOrEmpty(supabaseKey))
-		//		{
-		//			Console.WriteLine("[Warn] Supabaseの環境変数が不足しています。削除スキップ。");
-		//			return;
-		//		}
-
-		//		var options = new Supabase.SupabaseOptions
-		//		{
-		//			AutoConnectRealtime = false,
-		//			AutoRefreshToken = false
-		//		};
-
-		//		// ✅ 正しい初期化
-		//		var client = new Supabase.Client(supabaseUrl, supabaseKey, options);
-		//		await client.InitializeAsync();
-
-		//		var uri = new Uri(imageUrl);
-		//		var path = uri.AbsolutePath.Replace("/storage/v1/object/public/images/", "");
-		//		path = Uri.UnescapeDataString(path);
-
-		//		var storage = client.Storage.From("images");
-		//		var result = await storage.Remove(new List<string> { path });
-
-		//		Console.WriteLine($"[Supabase] 削除完了: {result?.Count ?? 0} 件");
-		//	}
-		//	catch (Exception ex)
-		//	{
-		//		Console.WriteLine($"[Warn] Supabase画像削除に失敗: {ex.Message}");
-		//	}
-		//}
 
 		// Supabase 画像削除共通
 		private async Task DeleteImageFromSupabaseAsync(string imageUrl)
