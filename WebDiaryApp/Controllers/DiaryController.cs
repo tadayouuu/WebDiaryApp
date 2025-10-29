@@ -13,12 +13,18 @@ namespace WebDiaryApp.Controllers
 		private readonly ApplicationDbContext _context;
 		private readonly IHttpClientFactory _httpClientFactory;
 		private readonly IConfiguration _config;
+		private readonly ILogger<DiaryController> _logger;  // ←★追加
 
-		public DiaryController(ApplicationDbContext context, IHttpClientFactory httpClientFactory, IConfiguration config)
+		public DiaryController(
+			ApplicationDbContext context,
+			IHttpClientFactory httpClientFactory,
+			IConfiguration config,
+			ILogger<DiaryController> logger) // ←★引数追加
 		{
 			_context = context;
 			_httpClientFactory = httpClientFactory;
 			_config = config;
+			_logger = logger; // ←★代入追加
 		}
 
 		// 一覧
@@ -220,7 +226,7 @@ namespace WebDiaryApp.Controllers
 
 				if (string.IsNullOrEmpty(supabaseUrl) || string.IsNullOrEmpty(supabaseKey))
 				{
-					Console.WriteLine("[Warn] Supabaseの環境変数が不足しています。削除スキップ。");
+					_logger.LogWarning("Supabaseの環境変数が不足しています。削除スキップ。");
 					return;
 				}
 
@@ -233,32 +239,26 @@ namespace WebDiaryApp.Controllers
 				var client = new Supabase.Client(supabaseUrl, supabaseKey, options);
 				await client.InitializeAsync();
 
-				// ✅ 正しい削除パスを取得
 				var uri = new Uri(imageUrl);
-				var path = uri.AbsolutePath;
-
-				// 例: /storage/v1/object/public/images/uploads/abc.jpg → uploads/abc.jpg
 				var prefix = "/storage/v1/object/public/images/";
-				if (path.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
-					path = path.Substring(prefix.Length);
-
-				// 念のためデコード
+				var path = uri.AbsolutePath.StartsWith(prefix)
+					? uri.AbsolutePath.Substring(prefix.Length)
+					: uri.AbsolutePath;
 				path = Uri.UnescapeDataString(path);
 
-				Console.WriteLine($"[Supabase] 削除対象パス: {path}");
+				_logger.LogInformation("[Supabase] 削除対象パス: {Path}", path);
 
 				var storage = client.Storage.From("images");
 				var result = await storage.Remove(new List<string> { path });
 
-				Console.WriteLine($"[Supabase] 削除完了: {(result != null ? string.Join(",", result) : "null")}");
-			}
-			catch (Supabase.Postgrest.Exceptions.PostgrestException ex)
-			{
-				Console.WriteLine($"[Supabase] Postgrestエラー: {ex.Message}");
+				if (result != null && result.Count > 0)
+					_logger.LogInformation("[Supabase] 削除完了: {Result}", string.Join(",", result));
+				else
+					_logger.LogWarning("[Supabase] 削除結果が空でした。パス={Path}", path);
 			}
 			catch (Exception ex)
 			{
-				Console.WriteLine($"[Warn] Supabase画像削除に失敗: {ex.Message}");
+				_logger.LogError(ex, "[Supabase] 画像削除中に例外発生");
 			}
 		}
 	}
