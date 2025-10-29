@@ -36,12 +36,23 @@
                         </div>
                     }
 
-                    <p class="card-text text-truncate">@item.Content</p>
+                    @* <p class="card-text text-truncate">@item.Content</p>
                     <button type="button"
                             class="btn btn-link p-0 preview-btn"
                             data-content="@item.Content"
                             data-image="@item.ImageUrl">
                         プレビュー
+                    </button> *@
+
+                    <p class="card-text text-truncate">@item.Content</p>
+
+                    <!-- ✅ 統一デザインのプレビューボタン -->
+                    <button type="button"
+                            class="btn btn-outline-secondary btn-sm preview-btn"
+                            data-content="@item.Content"
+                            data-image="@item.ImageUrl"
+                            data-title="@item.Title">
+                        <i class="bi bi-eye"></i> プレビュー
                     </button>
 
                     <div class="badge bg-secondary category-filter" data-category="@item.Category">
@@ -66,7 +77,7 @@
     }
 </div>
 
-<!-- 🪶 プレビュー用モーダル -->
+@* <!-- 🪶 プレビュー用モーダル -->
 <div class="modal fade" id="previewModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-scrollable">
         <div class="modal-content">
@@ -75,6 +86,21 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body text-center" id="previewBody"></div>
+        </div>
+    </div>
+</div> *@
+
+<!-- 🪶 おしゃれなプレビュー用モーダル -->
+<div class="modal fade" id="previewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header border-0 bg-dark text-white">
+                <h5 class="modal-title" id="previewTitle"></h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body bg-light" id="previewBody" style="max-height:70vh; overflow-y:auto;">
+                <!-- 画像と本文がここに入る -->
+            </div>
         </div>
     </div>
 </div>
@@ -90,19 +116,44 @@
             });
 
             // ✅ プレビュー（本文＋画像）
+            // $('.preview-btn').on('click', function (e) {
+            //     e.stopPropagation();
+            //     const content = $(this).data('content');
+            //     const image = $(this).data('image');
+
+            //     let html = '';
+            //     if (image) {
+            //         html += `<img src="${image}" class="img-fluid mb-3 rounded" style="max-width:300px;">`;
+            //     }
+            //     html += `<p class="text-start">${content}</p>`;
+
+            //     $('#previewBody').html(html);
+            //     const modal = new bootstrap.Modal(document.getElementById('previewModal'));
+            //     modal.show();
+            // });
+
+            // ✅ プレビュー表示（画像＋本文）
             $('.preview-btn').on('click', function (e) {
                 e.stopPropagation();
+
                 const content = $(this).data('content');
                 const image = $(this).data('image');
+                const title = $(this).data('title');
 
                 let html = '';
                 if (image) {
-                    html += `<img src="${image}" class="img-fluid mb-3 rounded" style="max-width:300px;">`;
+                    html += `
+                        <div class="text-center mb-3">
+                            <img src="${image}" class="img-fluid rounded shadow-sm" style="max-width:100%; height:auto;">
+                        </div>`;
                 }
-                html += `<p class="text-start">${content}</p>`;
+                html += `<div class="p-2 text-start" style="white-space:pre-wrap; font-size:1.05rem;">${content}</div>`;
 
+                $('#previewTitle').text(title);
                 $('#previewBody').html(html);
-                const modal = new bootstrap.Modal(document.getElementById('previewModal'));
+
+                const modalEl = document.getElementById('previewModal');
+                const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
                 modal.show();
             });
 
