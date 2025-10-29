@@ -36,14 +36,6 @@
                         </div>
                     }
 
-                    @* <p class="card-text text-truncate">@item.Content</p>
-                    <button type="button"
-                            class="btn btn-link p-0 preview-btn"
-                            data-content="@item.Content"
-                            data-image="@item.ImageUrl">
-                        プレビュー
-                    </button> *@
-
                     <p class="card-text text-truncate">@item.Content</p>
 
                     <!-- ✅ 統一デザインのプレビューボタン -->
@@ -77,19 +69,6 @@
     }
 </div>
 
-@* <!-- 🪶 プレビュー用モーダル -->
-<div class="modal fade" id="previewModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-scrollable">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">本文プレビュー</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body text-center" id="previewBody"></div>
-        </div>
-    </div>
-</div> *@
-
 <!-- 🪶 おしゃれなプレビュー用モーダル -->
 <div class="modal fade" id="previewModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -114,23 +93,6 @@
                 const id = $(this).data('id');
                 window.location.href = `/Diary/Edit/${id}`;
             });
-
-            // ✅ プレビュー（本文＋画像）
-            // $('.preview-btn').on('click', function (e) {
-            //     e.stopPropagation();
-            //     const content = $(this).data('content');
-            //     const image = $(this).data('image');
-
-            //     let html = '';
-            //     if (image) {
-            //         html += `<img src="${image}" class="img-fluid mb-3 rounded" style="max-width:300px;">`;
-            //     }
-            //     html += `<p class="text-start">${content}</p>`;
-
-            //     $('#previewBody').html(html);
-            //     const modal = new bootstrap.Modal(document.getElementById('previewModal'));
-            //     modal.show();
-            // });
 
             // ✅ プレビュー表示（画像＋本文）
             $('.preview-btn').on('click', function (e) {

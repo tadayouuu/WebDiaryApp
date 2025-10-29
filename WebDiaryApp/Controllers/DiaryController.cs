@@ -22,16 +22,6 @@ namespace WebDiaryApp.Controllers
 		}
 
 		// 一覧
-		//public async Task<IActionResult> Index()
-		//{
-		//	var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-		//	var entries = await _context.DiaryEntries
-		//		.Where(d => d.UserId == userId)
-		//		.OrderByDescending(d => d.CreatedAt)
-		//		.ToListAsync();
-		//	return View(entries);
-		//}
-
 		public async Task<IActionResult> Index(string? category)
 		{
 			var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
@@ -178,6 +168,47 @@ namespace WebDiaryApp.Controllers
 		}
 
 		// Supabase 画像削除共通
+		//private async Task DeleteImageFromSupabaseAsync(string imageUrl)
+		//{
+		//	try
+		//	{
+		//		var supabaseUrl = _config["SUPABASE_URL"] ?? "https://klkhzamffrmkvyeiubeo.supabase.co";
+		//		var supabaseKey = _config["SUPABASE_SERVICE_ROLE"]
+		//			?? _config["SUPABASE_SERVICE_KEY"]
+		//			?? _config["SUPABASE_KEY"];
+
+		//		if (string.IsNullOrEmpty(supabaseUrl) || string.IsNullOrEmpty(supabaseKey))
+		//		{
+		//			Console.WriteLine("[Warn] Supabaseの環境変数が不足しています。削除スキップ。");
+		//			return;
+		//		}
+
+		//		var options = new Supabase.SupabaseOptions
+		//		{
+		//			AutoConnectRealtime = false,
+		//			AutoRefreshToken = false
+		//		};
+
+		//		// ✅ 正しい初期化
+		//		var client = new Supabase.Client(supabaseUrl, supabaseKey, options);
+		//		await client.InitializeAsync();
+
+		//		var uri = new Uri(imageUrl);
+		//		var path = uri.AbsolutePath.Replace("/storage/v1/object/public/images/", "");
+		//		path = Uri.UnescapeDataString(path);
+
+		//		var storage = client.Storage.From("images");
+		//		var result = await storage.Remove(new List<string> { path });
+
+		//		Console.WriteLine($"[Supabase] 削除完了: {result?.Count ?? 0} 件");
+		//	}
+		//	catch (Exception ex)
+		//	{
+		//		Console.WriteLine($"[Warn] Supabase画像削除に失敗: {ex.Message}");
+		//	}
+		//}
+
+		// Supabase 画像削除共通
 		private async Task DeleteImageFromSupabaseAsync(string imageUrl)
 		{
 			try
@@ -199,24 +230,36 @@ namespace WebDiaryApp.Controllers
 					AutoRefreshToken = false
 				};
 
-				// ✅ 正しい初期化
 				var client = new Supabase.Client(supabaseUrl, supabaseKey, options);
 				await client.InitializeAsync();
 
+				// ✅ 正しい削除パスを取得
 				var uri = new Uri(imageUrl);
-				var path = uri.AbsolutePath.Replace("/storage/v1/object/public/images/", "");
+				var path = uri.AbsolutePath;
+
+				// 例: /storage/v1/object/public/images/uploads/abc.jpg → uploads/abc.jpg
+				var prefix = "/storage/v1/object/public/images/";
+				if (path.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+					path = path.Substring(prefix.Length);
+
+				// 念のためデコード
 				path = Uri.UnescapeDataString(path);
+
+				Console.WriteLine($"[Supabase] 削除対象パス: {path}");
 
 				var storage = client.Storage.From("images");
 				var result = await storage.Remove(new List<string> { path });
 
-				Console.WriteLine($"[Supabase] 削除完了: {result?.Count ?? 0} 件");
+				Console.WriteLine($"[Supabase] 削除完了: {(result != null ? string.Join(",", result) : "null")}");
+			}
+			catch (Supabase.Postgrest.Exceptions.PostgrestException ex)
+			{
+				Console.WriteLine($"[Supabase] Postgrestエラー: {ex.Message}");
 			}
 			catch (Exception ex)
 			{
 				Console.WriteLine($"[Warn] Supabase画像削除に失敗: {ex.Message}");
 			}
 		}
-
 	}
 }
