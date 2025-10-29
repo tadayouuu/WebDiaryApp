@@ -140,6 +140,59 @@
             }
         });
 
+        // ✅ 編集ページ：外クリックで戻る（確認モーダル付き）
+        $(document).on('click', function (e) {
+            // form要素（本文・タイトル・ボタン）をクリックした場合はスルー
+            if ($(e.target).closest('form, .modal').length > 0) return;
+
+            // 変更があるかチェック
+            const original = {
+                title: $('input[name="Title"]').data('original') ?? $('input[name="Title"]').val(),
+                content: $('textarea[name="Content"]').data('original') ?? $('textarea[name="Content"]').val(),
+                category: $('input[name="Category"]').data('original') ?? $('input[name="Category"]').val(),
+                image: $('input[name="ImageUrl"]').data('original') ?? $('input[name="ImageUrl"]').val()
+            };
+            const current = {
+                title: $('input[name="Title"]').val(),
+                content: $('textarea[name="Content"]').val(),
+                category: $('input[name="Category"]').val(),
+                image: $('input[name="ImageUrl"]').val()
+            };
+
+            const changed = Object.keys(original).some(k => original[k] !== current[k]);
+
+            if (changed) {
+                const modal = new bootstrap.Modal(document.getElementById('leaveConfirmModal'));
+                modal.show();
+            } else {
+                window.location.href = '/Diary/Index';
+            }
+        });
+
+        // ✅ 編集ページ：モーダルの確定／キャンセル処理
+        $(document).on('click', '#confirmLeave', function () {
+            window.location.href = '/Diary/Index';
+        });
+
         setTimeout(() => $('.alert').fadeOut('slow'), 3000);
     </script>
+
+    <!-- 🪶 編集解除確認モーダル -->
+    <div class="modal fade" id="leaveConfirmModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-warning">
+                    <h5 class="modal-title text-dark">編集を終了しますか？</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-start">
+                    <p>保存していない変更があります。<br>編集を終了して一覧に戻りますか？</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">続ける</button>
+                    <button type="button" id="confirmLeave" class="btn btn-warning">終了して戻る</button>
+                </div>
+            </div>
+        </div>
+    </div>
 }
