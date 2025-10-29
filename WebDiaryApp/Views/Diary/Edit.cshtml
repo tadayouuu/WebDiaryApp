@@ -161,47 +161,41 @@
 
         // ✅ 編集ページ：外クリックで戻る（確認モーダル付き）
         $(document).on('click', function (e) {
-            // form要素やモーダル内クリックは無視
-            if ($(e.target).closest('form, .modal').length > 0) return;
+            // フォーム内 or モーダルクリックは無視
+            if ($(e.target).closest('form, .modal, .btn').length > 0) return;
 
-            // 入力内容の変更チェック
-            const original = {
-                title: $('input[name="Title"]').data('original') ?? $('input[name="Title"]').val(),
-                content: $('textarea[name="Content"]').data('original') ?? $('textarea[name="Content"]').val(),
-                category: $('input[name="Category"]').data('original') ?? $('input[name="Category"]').val(),
-                image: $('input[name="ImageUrl"]').data('original') ?? $('input[name="ImageUrl"]').val()
+            // 変更検出
+            const orig = {
+                title: $('input[name="Title"]').attr('data-orig') ?? $('input[name="Title"]').val(),
+                content: $('textarea[name="Content"]').attr('data-orig') ?? $('textarea[name="Content"]').val(),
+                category: $('input[name="Category"]').attr('data-orig') ?? $('input[name="Category"]').val(),
+                image: $('input[name="ImageUrl"]').attr('data-orig') ?? $('input[name="ImageUrl"]').val()
             };
-            const current = {
+            const now = {
                 title: $('input[name="Title"]').val(),
                 content: $('textarea[name="Content"]').val(),
                 category: $('input[name="Category"]').val(),
                 image: $('input[name="ImageUrl"]').val()
             };
-
-            const changed = Object.keys(original).some(k => original[k] !== current[k]);
+            const changed = Object.keys(orig).some(k => orig[k] !== now[k]);
 
             if (changed) {
-                // 🔹 少し遅らせてモーダル表示（クリック競合回避）
+                // モーダルを後から確実に表示
                 setTimeout(() => {
                     const modalEl = document.getElementById('leaveConfirmModal');
                     const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
                     modal.show();
-                    console.log("🟡 モーダル表示トリガーOK");
-                }, 100);
+                }, 50);
             } else {
                 window.location.href = '/Diary/Index';
             }
         });
 
-        // ✅ モーダルの確定／キャンセル処理
-        $(document).on('click', '#confirmLeave', function () {
-            window.location.href = '/Diary/Index';
-        });
+        // ✅ モーダル確定で戻る
+        $(document).on('click', '#confirmLeave', () => window.location.href = '/Diary/Index');
 
-        // ✅ デバッグログ
-        $('#leaveConfirmModal').on('show.bs.modal', function () {
-            console.log('✅ Bootstrapモーダルが呼ばれました');
-        });
+        // ✅ デバッグ（Consoleで確認）
+        $('#leaveConfirmModal').on('show.bs.modal', () => console.log('🟡 モーダル表示OK'));
 
         setTimeout(() => $('.alert').fadeOut('slow'), 3000);
     </script>
