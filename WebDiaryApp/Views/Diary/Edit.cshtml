@@ -52,6 +52,25 @@
     <a asp-action="Index" class="btn btn-secondary ms-2">戻る</a>
 </form>
 
+<!-- 🪶 編集解除確認モーダル -->
+<div class="modal fade" id="leaveConfirmModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title text-dark">編集を終了しますか？</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-start">
+                <p>保存していない変更があります。<br>編集を終了して一覧に戻りますか？</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">続ける</button>
+                <button type="button" id="confirmLeave" class="btn btn-warning">終了して戻る</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script>
         // ✅ 画像アップロード処理
@@ -175,24 +194,5 @@
         });
 
         setTimeout(() => $('.alert').fadeOut('slow'), 3000);
-    </script>
-
-    <!-- 🪶 編集解除確認モーダル -->
-    <div class="modal fade" id="leaveConfirmModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header bg-warning">
-                    <h5 class="modal-title text-dark">編集を終了しますか？</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body text-start">
-                    <p>保存していない変更があります。<br>編集を終了して一覧に戻りますか？</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">続ける</button>
-                    <button type="button" id="confirmLeave" class="btn btn-warning">終了して戻る</button>
-                </div>
-            </div>
-        </div>
-    </div>
+    </script>    
 }
