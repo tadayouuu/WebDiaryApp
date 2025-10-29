@@ -252,9 +252,16 @@ namespace WebDiaryApp.Controllers
 				var result = await storage.Remove(new List<string> { path });
 
 				if (result != null && result.Count > 0)
-					_logger.LogInformation("[Supabase] 削除完了: {Result}", string.Join(",", result));
+				{
+					foreach (var item in result)
+					{
+						_logger.LogInformation("[Supabase] 削除成功: {Name}", item?.Name ?? "(null)");
+					}
+				}
 				else
+				{
 					_logger.LogWarning("[Supabase] 削除結果が空でした。パス={Path}", path);
+				}
 			}
 			catch (Exception ex)
 			{
