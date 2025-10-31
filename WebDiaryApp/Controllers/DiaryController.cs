@@ -56,18 +56,18 @@ namespace WebDiaryApp.Controllers
 
 			var jst = TimeZoneInfo.FindSystemTimeZoneById("Tokyo Standard Time");
 
-			// 🔸投稿がある日付リスト（JSTに変換して取得）
 			var existingDates = await _context.DiaryEntries
 				.Where(d => d.UserId == userId)
-				.Select(d => TimeZoneInfo.ConvertTimeFromUtc(d.CreatedAt, jst))
+				.Select(d => TimeZoneInfo.ConvertTimeFromUtc(d.CreatedAt, jst).Date)
+				.Distinct()
 				.ToListAsync();
 
-			// 🔸ViewBagに渡す（タイムゾーン付きISO形式に変換）
+			ViewBag.EntryDates = existingDates
+				.Select(d => d.ToString("yyyy-MM-dd")) // ← 純粋な日付だけ
+				.ToList();
+
 			ViewBag.SelectedCategory = category;
 			ViewBag.SelectedDate = date?.ToString("yyyy-MM-dd");
-			ViewBag.EntryDates = existingDates
-				.Select(d => d.ToString("yyyy-MM-ddTHH:mm:sszzz")) // ← 🌍 JST +09:00付き
-				.ToList();
 
 			return View(entries);
 		}

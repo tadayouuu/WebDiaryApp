@@ -169,15 +169,8 @@
                 window.location.href = url;
             },
             onDayCreate: function(dObj, dStr, fp, dayElem) {
-                const localDateStr = fp.formatDate(dayElem.dateObj, "Y-m-d");
-
-                const hasEntry = entryDates.some(d => {
-                    const jsDate = new Date(d);
-                    const formatted = fp.formatDate(jsDate, "Y-m-d");
-                    return formatted === localDateStr;
-                });
-
-                if (hasEntry) {
+                const dateStr = fp.formatDate(dayElem.dateObj, "Y-m-d");
+                if (entryDates.includes(dateStr)) {
                     const dot = document.createElement("span");
                     dot.className = "diary-dot";
                     dayElem.appendChild(dot);
