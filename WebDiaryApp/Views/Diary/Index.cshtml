@@ -3,8 +3,11 @@
 <h1 class="mb-3">日記一覧</h1>
 
 <!-- 📅 カレンダー -->
-<div class="mb-4">
+<div class="mb-4 input-group" style="max-width: 320px;">
     <input type="text" id="calendarPicker" class="form-control" placeholder="日付を選択（または月を選択）" />
+    <button type="button" id="clearDateBtn" class="btn btn-outline-secondary">
+        <i class="bi bi-x-circle"></i>
+    </button>
 </div>
 
 @if (TempData["FlashMessage"] != null)
@@ -154,11 +157,11 @@
         // 📅 投稿のある日（C#→JS変換）
         const entryDates = @Html.Raw(entryDatesJson);
 
-        // 📅 カレンダー初期化＋投稿ポッチ
-        flatpickr("#calendarPicker", {
+        // 📅 Flatpickr初期化
+        const calendar = flatpickr("#calendarPicker", {
             dateFormat: "Y-m-d",
             locale: "ja",
-            disableMobile: true, // ← 📱 これを追加！
+            disableMobile: true,
             defaultDate: "@ViewBag.SelectedDate",
             onChange: function(selectedDates, dateStr) {
                 const category = "@ViewBag.SelectedCategory";
@@ -167,12 +170,6 @@
                 if (dateStr) {
                     let url = `/Diary/Index?date=${dateStr}`;
                     if (category) url += `&category=${encodeURIComponent(category)}`;
-                    window.location.href = url;
-                }
-                // ✅ 日付がクリアされたら → 全件表示
-                else {
-                    let url = `/Diary/Index`;
-                    if (category) url += `?category=${encodeURIComponent(category)}`;
                     window.location.href = url;
                 }
             },
@@ -184,6 +181,15 @@
                     dayElem.appendChild(dot);
                 }
             }
+        });
+
+        // ❌ クリアボタン動作
+        document.getElementById("clearDateBtn").addEventListener("click", function () {
+            calendar.clear(); // Flatpickrの選択解除
+            const category = "@ViewBag.SelectedCategory";
+            let url = `/Diary/Index`;
+            if (category) url += `?category=${encodeURIComponent(category)}`;
+            window.location.href = url;
         });
     </script>
 

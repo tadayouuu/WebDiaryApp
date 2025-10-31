@@ -225,3 +225,11 @@ body {
         border-radius: 50%;
         transform: translateX(-50%);
     }
+
+#clearDateBtn {
+    border-color: #ced4da;
+}
+
+#clearDateBtn:hover {
+    background-color: #f8f9fa;
+}
