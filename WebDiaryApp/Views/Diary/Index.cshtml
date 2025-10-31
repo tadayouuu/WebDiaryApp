@@ -161,12 +161,20 @@
             disableMobile: true, // ← 📱 これを追加！
             defaultDate: "@ViewBag.SelectedDate",
             onChange: function(selectedDates, dateStr) {
-                if (!dateStr) return;
-
                 const category = "@ViewBag.SelectedCategory";
-                let url = `/Diary/Index?date=${dateStr}`;
-                if (category) url += `&category=${encodeURIComponent(category)}`;
-                window.location.href = url;
+
+                // ✅ 日付選択時 → 絞り込み
+                if (dateStr) {
+                    let url = `/Diary/Index?date=${dateStr}`;
+                    if (category) url += `&category=${encodeURIComponent(category)}`;
+                    window.location.href = url;
+                }
+                // ✅ 日付がクリアされたら → 全件表示
+                else {
+                    let url = `/Diary/Index`;
+                    if (category) url += `?category=${encodeURIComponent(category)}`;
+                    window.location.href = url;
+                }
             },
             onDayCreate: function(dObj, dStr, fp, dayElem) {
                 const dateStr = fp.formatDate(dayElem.dateObj, "Y-m-d");
