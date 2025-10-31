@@ -54,10 +54,12 @@ namespace WebDiaryApp.Controllers
 				.OrderByDescending(d => d.CreatedAt)
 				.ToListAsync();
 
+			var jst = TimeZoneInfo.FindSystemTimeZoneById("Tokyo Standard Time");
+
 			// 🔸投稿がある日付リスト（UTC基準）
 			var existingDates = await _context.DiaryEntries
 				.Where(d => d.UserId == userId)
-				.Select(d => d.CreatedAt.Date)
+				.Select(d => TimeZoneInfo.ConvertTimeFromUtc(d.CreatedAt, jst).Date) // JST変換してから日付取得
 				.Distinct()
 				.ToListAsync();
 

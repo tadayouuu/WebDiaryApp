@@ -167,7 +167,8 @@
                 window.location.href = url;
             },
             onDayCreate: function(dObj, dStr, fp, dayElem) {
-                const dateStr = dayElem.dateObj.toISOString().split('T')[0];
+                // ✅ JST（ローカル）基準で日付文字列を作成
+                const dateStr = fp.formatDate(dayElem.dateObj, "Y-m-d");
                 if (entryDates.includes(dateStr)) {
                     const dot = document.createElement("span");
                     dot.className = "diary-dot";
