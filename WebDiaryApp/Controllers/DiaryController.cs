@@ -27,26 +27,46 @@ namespace WebDiaryApp.Controllers
 			_logger = logger; // ←★代入追加
 		}
 
-		// 一覧
+		// 一覧表示
 		public async Task<IActionResult> Index(string? category, DateTime? date)
 		{
 			var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-			var query = _context.DiaryEntries.Where(d => d.UserId == userId);
+			if (string.IsNullOrEmpty(userId))
+				return RedirectToAction("Login", "Account");
 
-			// カテゴリ絞り込み
+			// ベースクエリ
+			var query = _context.DiaryEntries
+				.Where(d => d.UserId == userId);
+
+			// 🔸カテゴリフィルター
 			if (!string.IsNullOrEmpty(category))
 				query = query.Where(d => d.Category == category);
 
-			// ✅ 日付フィルター（例: 2025-10-31）
+			// 🔸日付フィルター（UTC対応）
 			if (date.HasValue)
-				query = query.Where(d => d.CreatedAt.Date == date.Value.Date);
+			{
+				var targetUtc = DateTime.SpecifyKind(date.Value, DateTimeKind.Utc).Date;
+				query = query.Where(d => d.CreatedAt.Date == targetUtc);
+			}
 
+			// 🔸投稿一覧
 			var entries = await query
 				.OrderByDescending(d => d.CreatedAt)
 				.ToListAsync();
 
+			// 🔸投稿がある日付リスト（UTC基準）
+			var existingDates = await _context.DiaryEntries
+				.Where(d => d.UserId == userId)
+				.Select(d => d.CreatedAt.Date)
+				.Distinct()
+				.ToListAsync();
+
+			// 🔸ViewBagに渡す（JSで使うために文字列化）
 			ViewBag.SelectedCategory = category;
-			ViewBag.SelectedDate = date?.ToString("yyyy-MM-dd"); // ← あとでカレンダーに反映できる
+			ViewBag.SelectedDate = date?.ToString("yyyy-MM-dd");
+			ViewBag.EntryDates = existingDates
+				.Select(d => d.ToString("yyyy-MM-dd"))
+				.ToList();
 
 			return View(entries);
 		}

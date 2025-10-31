@@ -43,7 +43,6 @@
 
                     <p class="card-text text-truncate">@item.Content</p>
 
-                    <!-- ✅ 統一デザインのプレビューボタン -->
                     <button type="button"
                             class="btn btn-outline-secondary btn-sm preview-btn"
                             data-content="@item.Content"
@@ -74,7 +73,7 @@
     }
 </div>
 
-<!-- 🪶 おしゃれなプレビュー用モーダル -->
+<!-- 🪶 プレビュー用モーダル -->
 <div class="modal fade" id="previewModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
@@ -83,13 +82,21 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body bg-light" id="previewBody" style="max-height:70vh; overflow-y:auto;">
-                <!-- 画像と本文がここに入る -->
             </div>
         </div>
     </div>
 </div>
 
 @section Scripts {
+    <!-- Flatpickr 読み込み -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ja.js"></script>
+
+    @{
+        var entryDatesJson = System.Text.Json.JsonSerializer.Serialize(ViewBag.EntryDates ?? new List<string>());
+    }
+
     <script>
         $(function () {
             // ✅ カードクリック → 編集画面へ
@@ -99,10 +106,9 @@
                 window.location.href = `/Diary/Edit/${id}`;
             });
 
-            // ✅ プレビュー表示（画像＋本文）
+            // ✅ プレビュー
             $('.preview-btn').on('click', function (e) {
                 e.stopPropagation();
-
                 const content = $(this).data('content');
                 const image = $(this).data('image');
                 const title = $(this).data('title');
@@ -124,7 +130,7 @@
                 modal.show();
             });
 
-            // ✅ カテゴリーフィルター
+            // ✅ カテゴリフィルター
             $('.category-filter').on('click', function(e){
                 e.stopPropagation();
                 const cat = $(this).data('category');
@@ -145,21 +151,47 @@
             setTimeout(() => $('.alert').fadeOut('slow'), 3000);
         });
 
-        // 📅 カレンダー初期化
+        // 📅 投稿のある日（C#→JS変換）
+        const entryDates = @Html.Raw(entryDatesJson);
+
+        // 📅 カレンダー初期化＋投稿ポッチ
         flatpickr("#calendarPicker", {
             dateFormat: "Y-m-d",
             locale: "ja",
-            defaultDate: "@ViewBag.SelectedDate", // ← 選択状態を維持
+            defaultDate: "@ViewBag.SelectedDate",
             onChange: function(selectedDates, dateStr) {
                 if (!dateStr) return;
-
-                // カテゴリも維持して絞り込み
                 const category = "@ViewBag.SelectedCategory";
                 let url = `/Diary/Index?date=${dateStr}`;
                 if (category) url += `&category=${encodeURIComponent(category)}`;
                 window.location.href = url;
+            },
+            onDayCreate: function(dObj, dStr, fp, dayElem) {
+                const dateStr = dayElem.dateObj.toISOString().split('T')[0];
+                if (entryDates.includes(dateStr)) {
+                    const dot = document.createElement("span");
+                    dot.className = "diary-dot";
+                    dayElem.appendChild(dot);
+                }
             }
         });
-
     </script>
+
+    <style>
+        /* 📅 カレンダーの投稿ポッチ */
+        .flatpickr-day {
+            position: relative;
+        }
+
+            .flatpickr-day .diary-dot {
+                position: absolute;
+                bottom: 4px;
+                left: 50%;
+                width: 6px;
+                height: 6px;
+                background-color: #28a745;
+                border-radius: 50%;
+                transform: translateX(-50%);
+            }
+    </style>
 }
