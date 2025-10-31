@@ -24,6 +24,11 @@
         <div class="input-group">
             <input type="file" id="imageUpload" class="form-control" accept="image/*" />
             <button type="button" id="uploadButton" class="btn btn-outline-primary">アップロード</button>
+            <!-- 📸 カメラ起動ボタン -->
+            <button type="button" id="cameraButton" class="btn btn-outline-secondary">
+                <i class="bi bi-camera-fill"></i>
+            </button>
+            <input type="file" id="cameraInput" accept="image/*" capture="@("camera")" style="display:none;" />
         </div>
         <div class="mt-2">
             <img id="preview" src="" alt="プレビュー" style="max-width:300px; display:none; border:1px solid #ccc; border-radius:8px;" />
@@ -38,6 +43,7 @@
 
 @section Scripts {
     <script>
+        // ✅ アップロードボタン押下
         document.getElementById("uploadButton").addEventListener("click", async () => {
             const fileInput = document.getElementById("imageUpload");
             const file = fileInput.files[0];
@@ -46,44 +52,56 @@
                 return;
             }
 
-            const formData = new FormData();
-            formData.append("file", file);
-
-            const response = await fetch("/Diary/UploadImage", {
-                method: "POST",
-                body: formData
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-
-                // ✅ プレビュー表示
-                const preview = document.getElementById("preview");
-                preview.src = data.imageUrl;
-                preview.style.display = "block";
-
-                // ✅ Razor出力後のHTMLでは action="/Diary/Create" になる！
-                //    → これを元に form を取得するのが確実。
-                const form = document.querySelector('form[action$="/Diary/Create"]');
-                if (!form) {
-                    alert("フォームが見つかりません。");
-                    return;
-                }
-
-                let hiddenInput = form.querySelector('input[name="ImageUrl"]');
-                if (!hiddenInput) {
-                    hiddenInput = document.createElement("input");
-                    hiddenInput.type = "hidden";
-                    hiddenInput.name = "ImageUrl";
-                    form.appendChild(hiddenInput);
-                }
-                hiddenInput.value = data.imageUrl;
-
-                console.log("✅ Hidden input set:", hiddenInput.value);
+            try {
+                const imageUrl = await uploadImage(file); // ← 共通関数呼び出し
+                applyPreviewAndHidden(imageUrl);
                 alert("アップロード成功！");
-            } else {
-                alert("アップロードに失敗しました。");
+            } catch (err) {
+                alert("アップロードに失敗しました: " + err.message);
             }
         });
+
+        // 📸 カメラ起動ボタン押下
+        document.getElementById("cameraButton").addEventListener("click", () => {
+            document.getElementById("cameraInput").click();
+        });
+
+        // 📸 撮影完了後アップロード
+        document.getElementById("cameraInput").addEventListener("change", async (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            try {
+                const imageUrl = await uploadImage(file); // ← 共通関数呼び出し
+                applyPreviewAndHidden(imageUrl);
+                alert("📸 撮影画像をアップロードしました！");
+            } catch (err) {
+                alert("アップロードに失敗しました: " + err.message);
+            }
+        });
+
+        // ✅ プレビュー表示と hidden input の更新
+        function applyPreviewAndHidden(imageUrl) {
+            const preview = document.getElementById("preview");
+            preview.src = imageUrl;
+            preview.style.display = "block";
+
+            // form要素を確実に取得
+            const form = document.querySelector('form[action$="/Diary/Create"]');
+            if (!form) {
+                alert("フォームが見つかりません。");
+                return;
+            }
+
+            let hiddenInput = form.querySelector('input[name="ImageUrl"]');
+            if (!hiddenInput) {
+                hiddenInput = document.createElement("input");
+                hiddenInput.type = "hidden";
+                hiddenInput.name = "ImageUrl";
+                form.appendChild(hiddenInput);
+            }
+            hiddenInput.value = imageUrl;
+            console.log("✅ Hidden input set:", hiddenInput.value);
+        }
     </script>
 }

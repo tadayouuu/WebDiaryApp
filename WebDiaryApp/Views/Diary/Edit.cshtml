@@ -35,6 +35,11 @@
         <div class="input-group mt-2">
             <input type="file" class="form-control imageUpload" accept="image/*" />
             <button type="button" class="btn btn-outline-primary uploadButton">画像アップロード</button>
+            <!-- 📸 カメラ起動ボタン -->
+            <button type="button" id="cameraButton" class="btn btn-outline-secondary">
+                <i class="bi bi-camera-fill"></i>
+            </button>
+            <input type="file" id="cameraInput" accept="image/*" capture="@("camera")" style="display:none;" />
         </div>
     </div>
 
@@ -54,69 +59,50 @@
 
 @section Scripts {
     <script>
-        // ✅ 画像アップロード処理
+        // ✅ アップロード処理（共通化）
         $(document).on('click', '.uploadButton', async function () {
             const fileInput = document.querySelector('.imageUpload');
             const file = fileInput.files[0];
             if (!file) return alert("画像を選択してください。");
 
             try {
-                const imageUrl = await uploadImage(file);
-
-                // hidden inputに反映
-                let hidden = $('input[name="ImageUrl"]');
-                if (!hidden.length) {
-                    hidden = $('<input>').attr({ type: 'hidden', name: 'ImageUrl' }).appendTo('form');
-                }
-                hidden.val(imageUrl);
-
-                // プレビュー更新
-                $('#imageContainer').html(`
-                    <img src="${imageUrl}" class="img-thumbnail mb-2" style="max-width:150px; max-height:150px; object-fit:cover;" />
-                    <div><button type="button" id="deleteImageBtn" class="btn btn-outline-danger btn-sm">画像削除</button></div>
-                `);
-
+                const imageUrl = await uploadImage(file); // ← 共通関数呼び出し
+                applyImagePreview(imageUrl);
                 alert("画像をアップロードしました！");
             } catch (err) {
                 alert("アップロード失敗: " + err.message);
             }
         });
 
-        // ✅ Supabaseへアップロード
-        async function uploadImage(file) {
-            const maxWidth = 1200, maxHeight = 1200, quality = 0.8;
-            const img = await loadImage(file);
-            const canvas = document.createElement("canvas");
-            let { width, height } = img;
+        // 📸 カメラ撮影からアップロード
+        $('#cameraButton').on('click', () => $('#cameraInput').click());
+        $('#cameraInput').on('change', async function (e) {
+            const file = e.target.files[0];
+            if (!file) return;
 
-            if (width > maxWidth || height > maxHeight) {
-                const scale = Math.min(maxWidth / width, maxHeight / height);
-                width = Math.round(width * scale);
-                height = Math.round(height * scale);
+            try {
+                const imageUrl = await uploadImage(file); // ← 共通関数呼び出し
+                applyImagePreview(imageUrl);
+                alert("📸 撮影画像をアップロードしました！");
+            } catch (err) {
+                alert("アップロード失敗: " + err.message);
             }
+        });
 
-            canvas.width = width;
-            canvas.height = height;
-            const ctx = canvas.getContext("2d");
-            ctx.drawImage(img, 0, 0, width, height);
+        // ✅ プレビュー更新＋hidden更新処理を共通化
+        function applyImagePreview(imageUrl) {
+            // hidden input更新
+            let hidden = $('input[name="ImageUrl"]');
+            if (!hidden.length) {
+                hidden = $('<input>').attr({ type: 'hidden', name: 'ImageUrl' }).appendTo('form');
+            }
+            hidden.val(imageUrl);
 
-            const blob = await new Promise(r => canvas.toBlob(r, "image/jpeg", quality));
-            const formData = new FormData();
-            formData.append("file", new File([blob], file.name.replace(/\.[^.]+$/, ".jpg"), { type: "image/jpeg" }));
-
-            const response = await fetch("/Diary/UploadImage", { method: "POST", body: formData });
-            if (!response.ok) throw new Error(await response.text());
-            const result = await response.json();
-            return result.imageUrl;
-        }
-
-        function loadImage(file) {
-            return new Promise((resolve, reject) => {
-                const img = new Image();
-                img.onload = () => resolve(img);
-                img.onerror = reject;
-                img.src = URL.createObjectURL(file);
-            });
+            // プレビュー表示
+            $('#imageContainer').html(`
+                <img src="${imageUrl}" class="img-thumbnail mb-2" style="max-width:150px; max-height:150px; object-fit:cover;" />
+                <div><button type="button" id="deleteImageBtn" class="btn btn-outline-danger btn-sm">画像削除</button></div>
+            `);
         }
 
         // ✅ 画像削除（非同期）
@@ -142,10 +128,8 @@
 
         // ✅ 編集ページ：外クリックで戻る（確認モーダル付き）
         $(document).on('click', function (e) {
-            // フォーム内 or モーダルクリックは無視
             if ($(e.target).closest('form, .modal, .btn').length > 0) return;
 
-            // 変更検出
             const orig = {
                 title: $('input[name="Title"]').attr('data-orig') ?? $('input[name="Title"]').val(),
                 content: $('textarea[name="Content"]').attr('data-orig') ?? $('textarea[name="Content"]').val(),
@@ -161,7 +145,6 @@
             const changed = Object.keys(orig).some(k => orig[k] !== now[k]);
 
             if (changed) {
-                // モーダルを後から確実に表示
                 setTimeout(() => {
                     const modalEl = document.getElementById('leaveConfirmModal');
                     const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
@@ -175,9 +158,7 @@
         // ✅ モーダル確定で戻る
         $(document).on('click', '#confirmLeave', () => window.location.href = '/Diary/Index');
 
-        // ✅ デバッグ（Consoleで確認）
-        $('#leaveConfirmModal').on('show.bs.modal', () => console.log('🟡 モーダル表示OK'));
-
+        // ✅ 自動でフラッシュメッセージをフェードアウト
         setTimeout(() => $('.alert').fadeOut('slow'), 3000);
     </script>
 }
