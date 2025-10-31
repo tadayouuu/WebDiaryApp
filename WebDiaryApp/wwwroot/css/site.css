@@ -1,4 +1,4 @@
-/* === NotionƒŒƒCƒAƒEƒg ================================== */
+ï»¿/* === Notionãƒ¬ã‚¤ã‚¢ã‚¦ãƒˆ ================================== */
 body {
     background-color: #fafafa;
     font-family: 'Inter', 'Noto Sans JP', sans-serif;
@@ -24,7 +24,7 @@ body {
     margin-top: 2rem;
 }
 
-/* === “ú‹LƒuƒƒbƒN•— ================================== */
+/* === æ—¥è¨˜ãƒ–ãƒ­ãƒƒã‚¯é¢¨ ================================== */
 .diary-card {
     background: #fff;
     border: 1px solid #eaeaea;
@@ -60,7 +60,7 @@ body {
     font-weight: 500;
 }
 
-/* === ƒ{ƒ^ƒ“—Ş ================================== */
+/* === ãƒœã‚¿ãƒ³é¡ ================================== */
 .btn {
     border-radius: 6px;
     font-weight: 500;
@@ -100,7 +100,7 @@ body {
     border: 1px solid #e0e0e0;
 }
 
-/* === ƒXƒNƒ[ƒ‹ƒo[ ================================== */
+/* === ã‚¹ã‚¯ãƒ­ãƒ¼ãƒ«ãƒãƒ¼ ================================== */
 ::-webkit-scrollbar {
     width: 8px;
 }
@@ -114,7 +114,7 @@ body {
         background: #999;
     }
 
-/* === Notion•—ƒƒOƒCƒ“ƒ{ƒ^ƒ“ ========================== */
+/* === Notioné¢¨ãƒ­ã‚°ã‚¤ãƒ³ãƒœã‚¿ãƒ³ ========================== */
 
 .notion-btn {
     border: 1px solid #ddd;
@@ -137,12 +137,12 @@ body {
         background-color: #eaeaea;
     }
 
-/* ƒ†[ƒU[–¼‚Ì•¶š‚à’W‚­®‚¦‚é */
+/* ãƒ¦ãƒ¼ã‚¶ãƒ¼åã®æ–‡å­—ã‚‚æ·¡ãæ•´ãˆã‚‹ */
 .login-section span {
     color: #666;
 }
 
-/*uƒJƒeƒSƒŠvƒ{ƒ^ƒ“‚ğ‰Ÿ‚µ‚½‚Æ‚«‚ÌƒJƒ‰[•ÏX*/
+/*ã€Œã‚«ãƒ†ã‚´ãƒªã€ãƒœã‚¿ãƒ³ã‚’æŠ¼ã—ãŸã¨ãã®ã‚«ãƒ©ãƒ¼å¤‰æ›´*/
 .category-badge.active-category {
     background-color: #2f80ed !important;
     color: #fff !important;
@@ -150,7 +150,7 @@ body {
     transition: all 0.2s ease;
 }
 
-/* === Identity‰æ–ÊiƒƒOƒCƒ“E“o˜^EƒpƒXƒ[ƒhÄİ’è‚È‚Çj =================== */
+/* === Identityç”»é¢ï¼ˆãƒ­ã‚°ã‚¤ãƒ³ãƒ»ç™»éŒ²ãƒ»ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰å†è¨­å®šãªã©ï¼‰ =================== */
 .identity-card {
     background-color: #fff;
     border: 1px solid #eaeaea;
@@ -161,7 +161,7 @@ body {
     margin: 3rem auto;
 }
 
-/* Notion•—ƒ_[ƒNƒ{ƒ^ƒ“ */
+/* Notioné¢¨ãƒ€ãƒ¼ã‚¯ãƒœã‚¿ãƒ³ */
 .btn-dark {
     background-color: #2f3437;
     border: none;
@@ -173,7 +173,7 @@ body {
         background-color: #1e2022;
     }
 
-/* Identityƒy[ƒW‚ÌŒ©o‚µ */
+/* Identityãƒšãƒ¼ã‚¸ã®è¦‹å‡ºã— */
 .identity-card h2 {
     font-weight: 600;
     margin-bottom: 1.5rem;
@@ -187,12 +187,12 @@ body {
 }
 
 .image-updated {
-    outline: 3px solid #0d6efd; /* Â˜g */
+    outline: 3px solid #0d6efd; /* é’æ  */
     box-shadow: 0 0 10px rgba(13,110,253,0.6);
     transition: all 0.3s ease;
 }
 
-/* CSSFIndex.cshtml‚É <style> ‚Ü‚½‚Í site.css ‚É’Ç‰Á */
+/* CSSï¼šIndex.cshtmlã« <style> ã¾ãŸã¯ site.css ã«è¿½åŠ  */
 .position-relative {
     position: relative;
 }
@@ -202,3 +202,26 @@ body {
     top: 0.3rem;
     right: 0.3rem;
 }
+
+/* ğŸ“… Flatpickrã‚«ãƒ¬ãƒ³ãƒ€ãƒ¼å…±é€š */
+.flatpickr-calendar {
+    font-size: 0.95rem;
+    background: #fff !important; /* â† èƒŒæ™¯ç™½ã«å›ºå®šï¼ˆãƒ€ãƒ¼ã‚¯ãƒ¢ãƒ¼ãƒ‰ç„¡è¦–ï¼‰ */
+    color: #333 !important;
+}
+
+/* ğŸ“ æ—¥è¨˜ãŒã‚ã‚‹æ—¥ã®ãƒãƒƒãƒ */
+.flatpickr-day {
+    position: relative;
+}
+
+    .flatpickr-day .diary-dot {
+        position: absolute;
+        bottom: 4px;
+        left: 50%;
+        width: 6px;
+        height: 6px;
+        background-color: #ffeb3b; /* ğŸŒ• æ˜ã‚‹ã„é»„è‰²ï¼ˆé»’èƒŒæ™¯ã§ã‚‚è¦‹ãˆã‚‹ï¼‰ */
+        border-radius: 50%;
+        transform: translateX(-50%);
+    }

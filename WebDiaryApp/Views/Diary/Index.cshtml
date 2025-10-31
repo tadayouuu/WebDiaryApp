@@ -167,9 +167,15 @@
                 window.location.href = url;
             },
             onDayCreate: function(dObj, dStr, fp, dayElem) {
-                // ✅ JST（ローカル）基準で日付文字列を作成
-                const dateStr = fp.formatDate(dayElem.dateObj, "Y-m-d");
-                if (entryDates.includes(dateStr)) {
+                const localDateStr = fp.formatDate(dayElem.dateObj, "Y-m-d");
+
+                const hasEntry = entryDates.some(d => {
+                    const jsDate = new Date(d); // ← ここがポイント！
+                    const formatted = fp.formatDate(jsDate, "Y-m-d");
+                    return formatted === localDateStr;
+                });
+
+                if (hasEntry) {
                     const dot = document.createElement("span");
                     dot.className = "diary-dot";
                     dayElem.appendChild(dot);
