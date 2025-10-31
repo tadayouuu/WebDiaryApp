@@ -2,6 +2,11 @@
 
 <h1 class="mb-3">日記一覧</h1>
 
+<!-- 📅 カレンダー -->
+<div class="mb-4">
+    <input type="text" id="calendarPicker" class="form-control" placeholder="日付を選択（または月を選択）" />
+</div>
+
 @if (TempData["FlashMessage"] != null)
 {
     <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -139,5 +144,22 @@
             // ✅ アラート自動フェードアウト
             setTimeout(() => $('.alert').fadeOut('slow'), 3000);
         });
+
+        // 📅 カレンダー初期化
+        flatpickr("#calendarPicker", {
+            dateFormat: "Y-m-d",
+            locale: "ja",
+            defaultDate: "@ViewBag.SelectedDate", // ← 選択状態を維持
+            onChange: function(selectedDates, dateStr) {
+                if (!dateStr) return;
+
+                // カテゴリも維持して絞り込み
+                const category = "@ViewBag.SelectedCategory";
+                let url = `/Diary/Index?date=${dateStr}`;
+                if (category) url += `&category=${encodeURIComponent(category)}`;
+                window.location.href = url;
+            }
+        });
+
     </script>
 }

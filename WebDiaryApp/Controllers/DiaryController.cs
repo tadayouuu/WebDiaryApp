@@ -28,14 +28,26 @@ namespace WebDiaryApp.Controllers
 		}
 
 		// 一覧
-		public async Task<IActionResult> Index(string? category)
+		public async Task<IActionResult> Index(string? category, DateTime? date)
 		{
 			var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
 			var query = _context.DiaryEntries.Where(d => d.UserId == userId);
+
+			// カテゴリ絞り込み
 			if (!string.IsNullOrEmpty(category))
 				query = query.Where(d => d.Category == category);
-			var entries = await query.OrderByDescending(d => d.CreatedAt).ToListAsync();
+
+			// ✅ 日付フィルター（例: 2025-10-31）
+			if (date.HasValue)
+				query = query.Where(d => d.CreatedAt.Date == date.Value.Date);
+
+			var entries = await query
+				.OrderByDescending(d => d.CreatedAt)
+				.ToListAsync();
+
 			ViewBag.SelectedCategory = category;
+			ViewBag.SelectedDate = date?.ToString("yyyy-MM-dd"); // ← あとでカレンダーに反映できる
+
 			return View(entries);
 		}
 
