@@ -6,7 +6,22 @@ using Microsoft.AspNetCore.Localization;
 using System.Globalization;
 using Npgsql; // ← Supabase対応に必要
 
-var builder = WebApplication.CreateBuilder(args);
+//var builder = WebApplication.CreateBuilder(args);
+//Renderファイル監視作りすぎ対策
+var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+{
+	Args = args,
+	ContentRootPath = Directory.GetCurrentDirectory()
+});
+
+builder.Configuration
+	.Sources.Clear();
+
+builder.Configuration
+	.AddJsonFile("appsettings.json", optional: false, reloadOnChange: false)
+	.AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json",
+				 optional: true, reloadOnChange: false)
+	.AddEnvironmentVariables();
 
 // MVC + Razor Pages
 builder.Services.AddControllersWithViews();
