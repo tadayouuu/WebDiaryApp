@@ -181,36 +181,6 @@
         document.querySelectorAll(".diary-dot").forEach(d => d.remove());
 
         // 📅 Flatpickr初期化
-        // const calendar = flatpickr("#calendarPicker", {
-        //     dateFormat: "Y-m-d",
-        //     locale: "ja",
-        //     disableMobile: true,
-        //     defaultDate: "@ViewBag.SelectedDate",
-        //     onChange: function(selectedDates, dateStr) {
-        //         const category = "@ViewBag.SelectedCategory";
-
-        //         if (dateStr) {
-        //             let url = `/Diary/Index?date=${dateStr}`;
-        //             if (category) url += `&category=${encodeURIComponent(category)}`;
-        //             window.location.href = url;
-        //         }
-        //     },
-        //     onDayCreate: function(dObj, dStr, fp, dayElem) {
-        //         ★ セル単位でも保険で消す
-        //         const oldDot = dayElem.querySelector(".diary-dot");
-        //         if (oldDot) oldDot.remove();
-
-        //         ★ dayセル内に残っとるポッチを全消し（重要）
-        //         dayElem.querySelectorAll(".diary-dot").forEach(d => d.remove());
-
-        //         const dateStr = fp.formatDate(dayElem.dateObj, "Y-m-d");
-        //         if (entryDates.includes(dateStr)) {
-        //             const dot = document.createElement("span");
-        //             dot.className = "diary-dot";
-        //             dayElem.appendChild(dot);
-        //         }
-        //     }
-        // });
         const calendar = flatpickr("#calendarPicker", {
             dateFormat: "Y-m-d",
             locale: "ja",
@@ -218,12 +188,17 @@
             defaultDate: "@ViewBag.SelectedDate",
 
             onReady: function (selectedDates, dateStr, fp) {
+                // ★ Flatpickr内部初期化完了後に実行
+                setTimeout(() => {
+                    refreshDiaryDots(fp);
+                }, 0);
+            },
+
+            onMonthChange: function (_, __, fp) {
                 refreshDiaryDots(fp);
             },
-            onMonthChange: function (selectedDates, dateStr, fp) {
-                refreshDiaryDots(fp);
-            },
-            onYearChange: function (selectedDates, dateStr, fp) {
+
+            onYearChange: function (_, __, fp) {
                 refreshDiaryDots(fp);
             },
 
