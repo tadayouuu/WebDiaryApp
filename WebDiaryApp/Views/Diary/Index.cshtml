@@ -101,6 +101,26 @@
     }
 
     <script>
+        // ★ diary-dot を正しく描き直す関数（←ここ）
+        function refreshDiaryDots(fp) {
+            // カレンダー内のポッチを全消し
+            fp.calendarContainer
+              .querySelectorAll(".diary-dot")
+              .forEach(d => d.remove());
+
+            // entryDates に基づいて付け直す
+            fp.days.childNodes.forEach(dayElem => {
+                if (!dayElem.dateObj) return;
+
+                const dateStr = fp.formatDate(dayElem.dateObj, "Y-m-d");
+                if (entryDates.includes(dateStr)) {
+                    const dot = document.createElement("span");
+                    dot.className = "diary-dot";
+                    dayElem.appendChild(dot);
+                }
+            });
+        }
+
         $(function () {
             // ✅ カードクリック → 編集画面へ
             $('.diary-card').on('click', function (e) {
@@ -161,33 +181,58 @@
         document.querySelectorAll(".diary-dot").forEach(d => d.remove());
 
         // 📅 Flatpickr初期化
+        // const calendar = flatpickr("#calendarPicker", {
+        //     dateFormat: "Y-m-d",
+        //     locale: "ja",
+        //     disableMobile: true,
+        //     defaultDate: "@ViewBag.SelectedDate",
+        //     onChange: function(selectedDates, dateStr) {
+        //         const category = "@ViewBag.SelectedCategory";
+
+        //         if (dateStr) {
+        //             let url = `/Diary/Index?date=${dateStr}`;
+        //             if (category) url += `&category=${encodeURIComponent(category)}`;
+        //             window.location.href = url;
+        //         }
+        //     },
+        //     onDayCreate: function(dObj, dStr, fp, dayElem) {
+        //         ★ セル単位でも保険で消す
+        //         const oldDot = dayElem.querySelector(".diary-dot");
+        //         if (oldDot) oldDot.remove();
+
+        //         ★ dayセル内に残っとるポッチを全消し（重要）
+        //         dayElem.querySelectorAll(".diary-dot").forEach(d => d.remove());
+
+        //         const dateStr = fp.formatDate(dayElem.dateObj, "Y-m-d");
+        //         if (entryDates.includes(dateStr)) {
+        //             const dot = document.createElement("span");
+        //             dot.className = "diary-dot";
+        //             dayElem.appendChild(dot);
+        //         }
+        //     }
+        // });
         const calendar = flatpickr("#calendarPicker", {
             dateFormat: "Y-m-d",
             locale: "ja",
             disableMobile: true,
             defaultDate: "@ViewBag.SelectedDate",
-            onChange: function(selectedDates, dateStr) {
-                const category = "@ViewBag.SelectedCategory";
 
+            onReady: function (selectedDates, dateStr, fp) {
+                refreshDiaryDots(fp);
+            },
+            onMonthChange: function (selectedDates, dateStr, fp) {
+                refreshDiaryDots(fp);
+            },
+            onYearChange: function (selectedDates, dateStr, fp) {
+                refreshDiaryDots(fp);
+            },
+
+            onChange: function (selectedDates, dateStr) {
+                const category = "@ViewBag.SelectedCategory";
                 if (dateStr) {
                     let url = `/Diary/Index?date=${dateStr}`;
                     if (category) url += `&category=${encodeURIComponent(category)}`;
                     window.location.href = url;
-                }
-            },
-            onDayCreate: function(dObj, dStr, fp, dayElem) {
-                // ★ セル単位でも保険で消す
-                // const oldDot = dayElem.querySelector(".diary-dot");
-                // if (oldDot) oldDot.remove();
-
-                // ★ dayセル内に残っとるポッチを全消し（重要）
-                dayElem.querySelectorAll(".diary-dot").forEach(d => d.remove());
-
-                const dateStr = fp.formatDate(dayElem.dateObj, "Y-m-d");
-                if (entryDates.includes(dateStr)) {
-                    const dot = document.createElement("span");
-                    dot.className = "diary-dot";
-                    dayElem.appendChild(dot);
                 }
             }
         });
