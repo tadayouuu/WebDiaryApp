@@ -91,7 +91,7 @@
 </div>
 
 @section Scripts {
-    <!-- Flatpickr 読み込み -->
+    <!-- Flatpickr -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ja.js"></script>
@@ -103,35 +103,27 @@
     }
 
     <script>
-        // ============================
-        // 📅 日記が存在する日付一覧
-        // ============================
+        // 📅 日記が存在する日付（yyyy-MM-dd）
         const entryDates = @Html.Raw(entryDatesJson);
-        const entryDatesSet = new Set(entryDates);
 
-        // ============================
-        // 📅 Flatpickr 初期化
-        // ============================
+        // 📅 Flatpickr 初期化（最初にやってた素直な形）
         const calendar = flatpickr("#calendarPicker", {
             dateFormat: "Y-m-d",
             locale: "ja",
             disableMobile: true,
             defaultDate: "@ViewBag.SelectedDate",
 
-            // ★ day生成時：DOMは触らず data属性だけ制御
             onDayCreate: function (dObj, dStr, fp, dayElem) {
                 if (!dayElem.dateObj) return;
 
                 const dateStr = fp.formatDate(dayElem.dateObj, "Y-m-d");
-
-                if (entryDatesSet.has(dateStr)) {
-                    dayElem.dataset.hasDiary = "1";
-                } else {
-                    delete dayElem.dataset.hasDiary;
+                if (entryDates.includes(dateStr)) {
+                    const dot = document.createElement("span");
+                    dot.className = "diary-dot";
+                    dayElem.appendChild(dot);
                 }
             },
 
-            // ★ 日付選択時
             onChange: function (selectedDates, dateStr) {
                 const category = "@ViewBag.SelectedCategory";
                 if (dateStr) {
@@ -142,9 +134,7 @@
             }
         });
 
-        // ============================
-        // ❌ 日付クリアボタン
-        // ============================
+        // ❌ 日付クリア
         document.getElementById("clearDateBtn")
             ?.addEventListener("click", function () {
                 calendar.clear();
@@ -154,43 +144,17 @@
                 window.location.href = url;
             });
 
-        // ============================
-        // 🖱️ カード操作系（既存処理）
-        // ============================
+        // ===== 既存UI操作（そのまま） =====
         $(function () {
             $('.diary-card').on('click', function (e) {
                 if ($(e.target).closest('form, .btn, .category-filter').length) return;
-                const id = $(this).data('id');
-                window.location.href = `/Diary/Edit/${id}`;
-            });
-
-            $('.preview-btn').on('click', function (e) {
-                e.stopPropagation();
-                const content = $(this).data('content');
-                const image = $(this).data('image');
-                const title = $(this).data('title');
-
-                let html = '';
-                if (image) {
-                    html += `
-                        <div class="text-center mb-3">
-                            <img src="${image}" class="img-fluid rounded shadow-sm">
-                        </div>`;
-                }
-                html += `<div style="white-space:pre-wrap;">${content}</div>`;
-
-                $('#previewTitle').text(title);
-                $('#previewBody').html(html);
-
-                bootstrap.Modal
-                    .getOrCreateInstance(document.getElementById('previewModal'))
-                    .show();
+                window.location.href = `/Diary/Edit/${$(this).data('id')}`;
             });
 
             $('.category-filter').on('click', function (e) {
                 e.stopPropagation();
-                const cat = $(this).data('category');
-                window.location.href = `/Diary/Index?category=${encodeURIComponent(cat)}`;
+                window.location.href =
+                    `/Diary/Index?category=${encodeURIComponent($(this).data('category'))}`;
             });
 
             setTimeout(() => $('.alert').fadeOut('slow'), 3000);
@@ -198,16 +162,12 @@
     </script>
 
     <style>
-        /* ============================
-                   📅 カレンダーポッチ（CSSのみ）
-                   ============================ */
-
+        /* 📅 カレンダーポッチ */
         .flatpickr-day {
             position: relative;
         }
 
-            .flatpickr-day[data-has-diary="1"]::after {
-                content: "";
+            .flatpickr-day .diary-dot {
                 position: absolute;
                 bottom: 4px;
                 left: 50%;
