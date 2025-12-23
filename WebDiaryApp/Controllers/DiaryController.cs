@@ -58,7 +58,8 @@ namespace WebDiaryApp.Controllers
 
 			var existingDates = await _context.DiaryEntries
 				.Where(d => d.UserId == userId)
-				.Select(d => TimeZoneInfo.ConvertTimeFromUtc(d.CreatedAt, jst).Date)
+				//.Select(d => TimeZoneInfo.ConvertTimeFromUtc(d.CreatedAt, jst).Date)
+				.Select(d => d.CreatedAt.Date)
 				.Distinct()
 				.ToListAsync();
 
