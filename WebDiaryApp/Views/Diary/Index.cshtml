@@ -177,8 +177,11 @@
             },
             onDayCreate: function(dObj, dStr, fp, dayElem) {
                 // ★ セル単位でも保険で消す
-                const oldDot = dayElem.querySelector(".diary-dot");
-                if (oldDot) oldDot.remove();
+                // const oldDot = dayElem.querySelector(".diary-dot");
+                // if (oldDot) oldDot.remove();
+
+                // ★ dayセル内に残っとるポッチを全消し（重要）
+                dayElem.querySelectorAll(".diary-dot").forEach(d => d.remove());
 
                 const dateStr = fp.formatDate(dayElem.dateObj, "Y-m-d");
                 if (entryDates.includes(dateStr)) {
