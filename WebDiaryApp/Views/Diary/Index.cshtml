@@ -90,7 +90,7 @@
     </div>
 </div>
 
-@section Scripts {
+@* @section Scripts {
     <!-- Flatpickr -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
@@ -157,6 +157,128 @@
                     `/Diary/Index?category=${encodeURIComponent($(this).data('category'))}`;
             });
 
+            setTimeout(() => $('.alert').fadeOut('slow'), 3000);
+        });
+    </script>
+
+    <style>
+        /* 📅 カレンダーポッチ */
+        .flatpickr-day {
+            position: relative;
+        }
+
+            .flatpickr-day .diary-dot {
+                position: absolute;
+                bottom: 4px;
+                left: 50%;
+                width: 6px;
+                height: 6px;
+                background-color: #28a745;
+                border-radius: 50%;
+                transform: translateX(-50%);
+            }
+    </style>
+} *@
+
+@section Scripts {
+    <!-- Flatpickr -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ja.js"></script>
+
+    @{
+        var entryDatesJson = System.Text.Json.JsonSerializer.Serialize(
+            ViewBag.EntryDates ?? new List<string>()
+        );
+    }
+
+    <script>
+        // 📅 日記が存在する日付（yyyy-MM-dd）
+        const entryDates = @Html.Raw(entryDatesJson);
+
+        // 📅 Flatpickr 初期化
+        const calendar = flatpickr("#calendarPicker", {
+            dateFormat: "Y-m-d",
+            locale: "ja",
+            disableMobile: true,
+            defaultDate: "@ViewBag.SelectedDate",
+
+            onDayCreate: function (dObj, dStr, fp, dayElem) {
+                if (!dayElem.dateObj) return;
+
+                const dateStr = fp.formatDate(dayElem.dateObj, "Y-m-d");
+                if (entryDates.includes(dateStr)) {
+                    const dot = document.createElement("span");
+                    dot.className = "diary-dot";
+                    dayElem.appendChild(dot);
+                }
+            },
+
+            onChange: function (selectedDates, dateStr) {
+                const category = "@ViewBag.SelectedCategory";
+                if (dateStr) {
+                    let url = `/Diary/Index?date=${dateStr}`;
+                    if (category) url += `&category=${encodeURIComponent(category)}`;
+                    window.location.href = url;
+                }
+            }
+        });
+
+        // ❌ 日付クリア
+        document.getElementById("clearDateBtn")
+            ?.addEventListener("click", function () {
+                calendar.clear();
+                const category = "@ViewBag.SelectedCategory";
+                let url = `/Diary/Index`;
+                if (category) url += `?category=${encodeURIComponent(category)}`;
+                window.location.href = url;
+            });
+
+        // ===== 既存UI操作 =====
+        $(function () {
+
+            // ✅ カードクリック → 編集画面へ
+            $(document).on('click', '.diary-card', function (e) {
+                // ボタン/フォーム/カテゴリを押した時はカード遷移させん
+                if ($(e.target).closest('form, .btn, .category-filter').length) return;
+
+                const id = $(this).data('id');
+                window.location.href = `/Diary/Edit/${id}`;
+            });
+
+            // ✅ プレビュー（←これが今のファイルから消えとった）
+            $(document).on('click', '.preview-btn', function (e) {
+                e.stopPropagation();
+
+                const content = $(this).data('content') ?? '';
+                const image = $(this).data('image') ?? '';
+                const title = $(this).data('title') ?? '';
+
+                let html = '';
+                if (image) {
+                    html += `
+                        <div class="text-center mb-3">
+                            <img src="${image}" class="img-fluid rounded shadow-sm" style="max-width:100%; height:auto;">
+                        </div>`;
+                }
+                html += `<div class="p-2 text-start" style="white-space:pre-wrap; font-size:1.05rem;">${content}</div>`;
+
+                $('#previewTitle').text(title);
+                $('#previewBody').html(html);
+
+                const modalEl = document.getElementById('previewModal');
+                const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                modal.show();
+            });
+
+            // ✅ カテゴリフィルター
+            $(document).on('click', '.category-filter', function (e) {
+                e.stopPropagation();
+                const cat = $(this).data('category');
+                window.location.href = `/Diary/Index?category=${encodeURIComponent(cat)}`;
+            });
+
+            // ✅ アラート自動フェードアウト
             setTimeout(() => $('.alert').fadeOut('slow'), 3000);
         });
     </script>
