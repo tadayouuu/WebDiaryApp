@@ -71,8 +71,7 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options =>
 	options.SignIn.RequireConfirmedAccount = false;
 	options.SignIn.RequireConfirmedEmail = false;
 })
-.AddEntityFrameworkStores<ApplicationDbContext>()
-.AddDefaultTokenProviders();
+.AddEntityFrameworkStores<ApplicationDbContext>();
 
 // ★ Cookie（Render Free 対応・ここが本丸）
 builder.Services.ConfigureApplicationCookie(options =>
