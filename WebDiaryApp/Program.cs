@@ -103,7 +103,9 @@ app.MapControllerRoute(
 app.MapRazorPages();
 
 // --- マイグレーションを自動適用 ---
-if (app.Environment.IsDevelopment())
+var runMigrations = Environment.GetEnvironmentVariable("RUN_MIGRATIONS") == "true";
+
+if (runMigrations)
 {
 	using var scope = app.Services.CreateScope();
 	var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
@@ -112,3 +114,4 @@ if (app.Environment.IsDevelopment())
 }
 
 app.Run();
+Console.WriteLine($"ENV={app.Environment.EnvironmentName}, PORT={Environment.GetEnvironmentVariable("PORT")}");
