@@ -14,6 +14,12 @@ var builder = WebApplication.CreateBuilder(new WebApplicationOptions
 	ContentRootPath = Directory.GetCurrentDirectory()
 });
 
+var port = Environment.GetEnvironmentVariable("PORT");
+if (!string.IsNullOrEmpty(port))
+{
+	builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+}
+
 builder.Configuration
 	.Sources.Clear();
 
@@ -42,7 +48,7 @@ if (connectionString.StartsWith("postgres://") || connectionString.StartsWith("p
 		Host = uri.Host,
 		Port = uri.Port,
 		Username = userInfo[0],
-		Password = userInfo.Length > 1 ? userInfo[1] : "",
+		Password = userInfo.Length > 1 ? Uri.UnescapeDataString(userInfo[1]) : "",
 		Database = uri.LocalPath.TrimStart('/'),
 		SslMode = SslMode.Require,
 		TrustServerCertificate = true,
@@ -97,8 +103,9 @@ app.MapControllerRoute(
 app.MapRazorPages();
 
 // --- マイグレーションを自動適用 ---
-using (var scope = app.Services.CreateScope())
+if (app.Environment.IsDevelopment())
 {
+	using var scope = app.Services.CreateScope();
 	var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 	db.Database.SetCommandTimeout(180);
 	db.Database.Migrate();
