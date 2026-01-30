@@ -1,11 +1,12 @@
-using Microsoft.EntityFrameworkCore;
-using WebDiaryApp.Models;
-using WebDiaryApp.Data;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Localization;
-using System.Globalization;
+using Microsoft.EntityFrameworkCore;
 using Npgsql; // ← Supabase対応に必要
-using Microsoft.AspNetCore.HttpOverrides;
+using System.Globalization;
+using WebDiaryApp.Data;
+using WebDiaryApp.Models;
 
 //var builder = WebApplication.CreateBuilder(args);
 //Renderファイル監視作りすぎ対策
@@ -74,6 +75,16 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options =>
 	options.SignIn.RequireConfirmedAccount = false;
 })
 .AddEntityFrameworkStores<ApplicationDbContext>();
+
+builder.Services.ConfigureApplicationCookie(options =>
+{
+	options.Cookie.SameSite = SameSiteMode.Lax;
+	options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+});
+
+builder.Services.AddDataProtection()
+	.PersistKeysToFileSystem(new DirectoryInfo("/var/data/dpkeys"))
+	.SetApplicationName("WebDiaryApp");
 
 // --- HttpClient を使用可能にする（Supabaseアップロード用） ---
 builder.Services.AddHttpClient();
