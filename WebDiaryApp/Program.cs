@@ -39,24 +39,24 @@ var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL")
 	?? builder.Configuration.GetConnectionString("DefaultConnection");
 
 // --- SupabaseなどのURLをNpgsql接続文字列に変換 ---
-if (connectionString.StartsWith("postgres://") || connectionString.StartsWith("postgresql://"))
-{
-	var uri = new Uri(connectionString);
-	var userInfo = uri.UserInfo.Split(':', 2);
-	var npgsqlBuilder = new NpgsqlConnectionStringBuilder
-	{
-		Host = uri.Host,
-		Port = uri.Port,
-		Username = userInfo[0],
-		Password = userInfo.Length > 1 ? Uri.UnescapeDataString(userInfo[1]) : "",
-		Database = uri.LocalPath.TrimStart('/'),
-		SslMode = SslMode.Require,
-		TrustServerCertificate = true,
-		Pooling = true
-	};
+//if (connectionString.StartsWith("postgres://") || connectionString.StartsWith("postgresql://"))
+//{
+//	var uri = new Uri(connectionString);
+//	var userInfo = uri.UserInfo.Split(':', 2);
+//	var npgsqlBuilder = new NpgsqlConnectionStringBuilder
+//	{
+//		Host = uri.Host,
+//		Port = uri.Port,
+//		Username = userInfo[0],
+//		Password = userInfo.Length > 1 ? Uri.UnescapeDataString(userInfo[1]) : "",
+//		Database = uri.LocalPath.TrimStart('/'),
+//		SslMode = SslMode.Require,
+//		TrustServerCertificate = true,
+//		Pooling = true
+//	};
 
-	connectionString = npgsqlBuilder.ConnectionString;
-}
+//	connectionString = npgsqlBuilder.ConnectionString;
+//}
 
 // --- DbContext 設定 ---
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -73,6 +73,11 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options =>
 builder.Services.AddHttpClient();
 
 var app = builder.Build();
+
+Console.WriteLine("DATABASE_URL exists? " + (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DATABASE_URL"))));
+Console.WriteLine("DB Host=" + new NpgsqlConnectionStringBuilder(connectionString).Host);
+Console.WriteLine("DB Port=" + new NpgsqlConnectionStringBuilder(connectionString).Port);
+Console.WriteLine("DB User=" + new NpgsqlConnectionStringBuilder(connectionString).Username);
 
 // --- ロケール設定（日本語） ---
 var supportedCultures = new[] { new CultureInfo("ja-JP") };
