@@ -74,9 +74,6 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options =>
 .AddEntityFrameworkStores<ApplicationDbContext>()
 .AddDefaultTokenProviders();
 
-builder.Services.AddScoped<IUserClaimsPrincipalFactory<IdentityUser>,
-	UserClaimsPrincipalFactory<IdentityUser, IdentityRole>>();
-
 // ★ Cookie（Render Free 対応・ここが本丸）
 builder.Services.ConfigureApplicationCookie(options =>
 {
