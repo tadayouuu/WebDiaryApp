@@ -100,6 +100,7 @@ app.MapRazorPages();
 using (var scope = app.Services.CreateScope())
 {
 	var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+	db.Database.SetCommandTimeout(180);
 	db.Database.Migrate();
 }
 
