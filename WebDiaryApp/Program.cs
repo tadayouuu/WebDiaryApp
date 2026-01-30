@@ -61,7 +61,11 @@ if (connectionString.StartsWith("postgres://") || connectionString.StartsWith("p
 
 // --- DbContext 設定 ---
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-	options.UseNpgsql(connectionString));
+	options.UseNpgsql(connectionString, npgsqlOptions =>
+	{
+		npgsqlOptions.CommandTimeout(180);      // ← 30秒→180秒
+		npgsqlOptions.EnableRetryOnFailure();   // ← 通信一瞬コケた時のリトライ
+	}));
 
 // --- Identity 設定 ---
 builder.Services.AddDefaultIdentity<IdentityUser>(options =>
