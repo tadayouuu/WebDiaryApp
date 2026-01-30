@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Localization;
@@ -37,7 +36,7 @@ var connectionString =
 	?? builder.Configuration.GetConnectionString("DefaultConnection");
 
 if (string.IsNullOrWhiteSpace(connectionString))
-	throw new InvalidOperationException("Connection string is missing. Set DATABASE_URL or DefaultConnection.");
+	throw new InvalidOperationException("Connection string is missing.");
 
 // URI形式なら Npgsql 形式へ変換
 if (connectionString.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase) ||
@@ -58,7 +57,7 @@ if (connectionString.StartsWith("postgres://", StringComparison.OrdinalIgnoreCas
 	}.ConnectionString;
 }
 
-// DbContext（ログイン時に詰まらんようにタイムアウト＆リトライ）
+// DbContext
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 	options.UseNpgsql(connectionString, npgsqlOptions =>
 	{
@@ -70,34 +69,39 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddDefaultIdentity<IdentityUser>(options =>
 {
 	options.SignIn.RequireConfirmedAccount = false;
-	options.SignIn.RequireConfirmedEmail = false; // 念押し
+	options.SignIn.RequireConfirmedEmail = false;
 })
 .AddEntityFrameworkStores<ApplicationDbContext>();
 
-// Cookie（RenderのHTTPS終端対策）
+// ★ Cookie（Render Free 対応・ここが本丸）
 builder.Services.ConfigureApplicationCookie(options =>
 {
+	options.Cookie.Name = ".WebDiaryApp.Auth";
+	options.Cookie.HttpOnly = true;
 	options.Cookie.SameSite = SameSiteMode.Lax;
-	options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+
+	// Freeでは Always にしない
+	options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+
+	options.LoginPath = "/Identity/Account/Login";
+	options.LogoutPath = "/Identity/Account/Logout";
 });
 
-// DataProtection Keys 永続化（Renderで /var/data をPersistent Diskにしてる前提）
-builder.Services.AddDataProtection()
-	.PersistKeysToFileSystem(new DirectoryInfo("/var/data/dpkeys"))
-	.SetApplicationName("WebDiaryApp");
-
-// HttpClient（既存用途）
+// HttpClient
 builder.Services.AddHttpClient();
 
 var app = builder.Build();
 
-// Renderのリバースプロキシ対応（UseHttpsRedirectionより前）
-app.UseForwardedHeaders(new ForwardedHeadersOptions
+// ForwardedHeaders（Render対策）
+var forwardedHeadersOptions = new ForwardedHeadersOptions
 {
 	ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
-});
+};
+forwardedHeadersOptions.KnownNetworks.Clear();
+forwardedHeadersOptions.KnownProxies.Clear();
+app.UseForwardedHeaders(forwardedHeadersOptions);
 
-// ロケール設定（日本語）
+// ロケール（日本語）
 var supportedCultures = new[] { new CultureInfo("ja-JP") };
 app.UseRequestLocalization(new RequestLocalizationOptions
 {
@@ -125,9 +129,8 @@ app.MapControllerRoute(
 	pattern: "{controller=Diary}/{action=Index}/{id?}");
 app.MapRazorPages();
 
-// Migration（本番はENVで明示的に true にした時だけ）
-var runMigrations = Environment.GetEnvironmentVariable("RUN_MIGRATIONS") == "true";
-if (runMigrations)
+// Migration（明示的に true の時だけ）
+if (Environment.GetEnvironmentVariable("RUN_MIGRATIONS") == "true")
 {
 	using var scope = app.Services.CreateScope();
 	var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
