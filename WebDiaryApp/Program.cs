@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Localization;
 using System.Globalization;
 using Npgsql; // ← Supabase対応に必要
+using Microsoft.AspNetCore.HttpOverrides;
 
 //var builder = WebApplication.CreateBuilder(args);
 //Renderファイル監視作りすぎ対策
@@ -78,6 +79,11 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options =>
 builder.Services.AddHttpClient();
 
 var app = builder.Build();
+
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+	ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+});
 
 // --- ロケール設定（日本語） ---
 var supportedCultures = new[] { new CultureInfo("ja-JP") };
