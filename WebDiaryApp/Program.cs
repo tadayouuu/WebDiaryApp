@@ -3,50 +3,50 @@ using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
-using Npgsql; // ← Supabase対応に必要
+using Npgsql;
 using System.Globalization;
 using WebDiaryApp.Data;
-using WebDiaryApp.Models;
 
-//var builder = WebApplication.CreateBuilder(args);
-//Renderファイル監視作りすぎ対策
+// Renderファイル監視作りすぎ対策
 var builder = WebApplication.CreateBuilder(new WebApplicationOptions
 {
 	Args = args,
 	ContentRootPath = Directory.GetCurrentDirectory()
 });
 
+// RenderのPORTで待ち受け
 var port = Environment.GetEnvironmentVariable("PORT");
-if (!string.IsNullOrEmpty(port))
+if (!string.IsNullOrWhiteSpace(port))
 {
 	builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
 }
 
-builder.Configuration
-	.Sources.Clear();
-
+// 設定ファイル（reloadなし）
+builder.Configuration.Sources.Clear();
 builder.Configuration
 	.AddJsonFile("appsettings.json", optional: false, reloadOnChange: false)
-	.AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json",
-				 optional: true, reloadOnChange: false)
+	.AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: false)
 	.AddEnvironmentVariables();
 
 // MVC + Razor Pages
 builder.Services.AddControllersWithViews();
 
-// --- 接続文字列の設定 ---
-// 環境変数 DATABASE_URL（Render/Supabase用）があればそれを使用。
-// なければ appsettings.json の値を利用。
-var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL")
+// 接続文字列（RenderのDATABASE_URL優先）
+var connectionString =
+	Environment.GetEnvironmentVariable("DATABASE_URL")
 	?? builder.Configuration.GetConnectionString("DefaultConnection");
 
-// --- SupabaseなどのURLをNpgsql接続文字列に変換 ---
-if (connectionString.StartsWith("postgres://") || connectionString.StartsWith("postgresql://"))
+if (string.IsNullOrWhiteSpace(connectionString))
+	throw new InvalidOperationException("Connection string is missing. Set DATABASE_URL or DefaultConnection.");
+
+// URI形式なら Npgsql 形式へ変換
+if (connectionString.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase) ||
+	connectionString.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase))
 {
 	var uri = new Uri(connectionString);
 	var userInfo = uri.UserInfo.Split(':', 2);
 
-	var npgsqlBuilder = new NpgsqlConnectionStringBuilder
+	connectionString = new NpgsqlConnectionStringBuilder
 	{
 		Host = uri.Host,
 		Port = uri.Port,
@@ -55,48 +55,49 @@ if (connectionString.StartsWith("postgres://") || connectionString.StartsWith("p
 		Database = uri.AbsolutePath.TrimStart('/'),
 		SslMode = SslMode.Require,
 		TrustServerCertificate = true,
-		// Pooling は一旦触らん（デフォルトでOK）
-	};
-
-	connectionString = npgsqlBuilder.ConnectionString;
+	}.ConnectionString;
 }
 
-// --- DbContext 設定 ---
+// DbContext（ログイン時に詰まらんようにタイムアウト＆リトライ）
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 	options.UseNpgsql(connectionString, npgsqlOptions =>
 	{
-		npgsqlOptions.CommandTimeout(180);      // ← 30秒→180秒
-		npgsqlOptions.EnableRetryOnFailure();   // ← 通信一瞬コケた時のリトライ
+		npgsqlOptions.CommandTimeout(180);
+		npgsqlOptions.EnableRetryOnFailure();
 	}));
 
-// --- Identity 設定 ---
+// Identity
 builder.Services.AddDefaultIdentity<IdentityUser>(options =>
 {
 	options.SignIn.RequireConfirmedAccount = false;
+	options.SignIn.RequireConfirmedEmail = false; // 念押し
 })
 .AddEntityFrameworkStores<ApplicationDbContext>();
 
+// Cookie（RenderのHTTPS終端対策）
 builder.Services.ConfigureApplicationCookie(options =>
 {
 	options.Cookie.SameSite = SameSiteMode.Lax;
 	options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
 });
 
+// DataProtection Keys 永続化（Renderで /var/data をPersistent Diskにしてる前提）
 builder.Services.AddDataProtection()
 	.PersistKeysToFileSystem(new DirectoryInfo("/var/data/dpkeys"))
 	.SetApplicationName("WebDiaryApp");
 
-// --- HttpClient を使用可能にする（Supabaseアップロード用） ---
+// HttpClient（既存用途）
 builder.Services.AddHttpClient();
 
 var app = builder.Build();
 
+// Renderのリバースプロキシ対応（UseHttpsRedirectionより前）
 app.UseForwardedHeaders(new ForwardedHeadersOptions
 {
 	ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
 });
 
-// --- ロケール設定（日本語） ---
+// ロケール設定（日本語）
 var supportedCultures = new[] { new CultureInfo("ja-JP") };
 app.UseRequestLocalization(new RequestLocalizationOptions
 {
@@ -118,15 +119,14 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
-// --- ルーティング設定 ---
+// ルーティング
 app.MapControllerRoute(
 	name: "default",
 	pattern: "{controller=Diary}/{action=Index}/{id?}");
 app.MapRazorPages();
 
-// --- マイグレーションを自動適用 ---
+// Migration（本番はENVで明示的に true にした時だけ）
 var runMigrations = Environment.GetEnvironmentVariable("RUN_MIGRATIONS") == "true";
-
 if (runMigrations)
 {
 	using var scope = app.Services.CreateScope();
@@ -136,4 +136,3 @@ if (runMigrations)
 }
 
 app.Run();
-Console.WriteLine($"ENV={app.Environment.EnvironmentName}, PORT={Environment.GetEnvironmentVariable("PORT")}");
