@@ -31,9 +31,7 @@ builder.Configuration
 builder.Services.AddControllersWithViews();
 
 // 接続文字列（RenderのDATABASE_URL優先）
-var connectionString =
-	Environment.GetEnvironmentVariable("DATABASE_URL")
-	?? builder.Configuration.GetConnectionString("DefaultConnection");
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? Environment.GetEnvironmentVariable("DATABASE_URL");
 
 if (string.IsNullOrWhiteSpace(connectionString))
 	throw new InvalidOperationException("Connection string is missing.");
