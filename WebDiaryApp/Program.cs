@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using System.Globalization;
+using Microsoft.AspNetCore.DataProtection;
 using WebDiaryApp.Data;
 
 // Renderファイル監視作りすぎ対策
@@ -62,6 +63,10 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 		npgsqlOptions.CommandTimeout(180);
 		npgsqlOptions.EnableRetryOnFailure();
 	}));
+
+builder.Services.AddDataProtection()
+	.PersistKeysToDbContext<ApplicationDbContext>()
+	.SetApplicationName("WebDiaryApp");
 
 // Identity
 builder.Services.AddDefaultIdentity<IdentityUser>(options =>
