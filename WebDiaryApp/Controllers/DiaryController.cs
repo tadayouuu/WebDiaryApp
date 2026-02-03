@@ -117,14 +117,35 @@ namespace WebDiaryApp.Controllers
 		public IActionResult Create() => View();
 
 		// 新規作成処理
+		//[HttpPost]
+		//[ValidateAntiForgeryToken]
+		//public async Task<IActionResult> Create([Bind("Title,Content,Category,ImageUrl")] DiaryEntry diaryEntry)
+		//{
+		//	if (!ModelState.IsValid) return View(diaryEntry);
+
+		//	diaryEntry.UserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+		//	diaryEntry.CreatedAt = DateTime.UtcNow;
+
+		//	_context.Add(diaryEntry);
+		//	await _context.SaveChangesAsync();
+
+		//	TempData["FlashMessage"] = "日記を作成しました！";
+		//	return RedirectToAction(nameof(Index));
+		//}
+
 		[HttpPost]
 		[ValidateAntiForgeryToken]
 		public async Task<IActionResult> Create([Bind("Title,Content,Category,ImageUrl")] DiaryEntry diaryEntry)
 		{
-			if (!ModelState.IsValid) return View(diaryEntry);
-
+			// 先にサーバで埋める（Required対策）
 			diaryEntry.UserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
 			diaryEntry.CreatedAt = DateTime.UtcNow;
+
+			// バインドされない項目はModelStateから外す（保険）
+			ModelState.Remove("UserId");
+			ModelState.Remove("CreatedAt");
+
+			if (!ModelState.IsValid) return View(diaryEntry);
 
 			_context.Add(diaryEntry);
 			await _context.SaveChangesAsync();
