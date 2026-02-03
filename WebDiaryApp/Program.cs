@@ -30,7 +30,7 @@ builder.Configuration
 // MVC + Razor Pages
 builder.Services.AddControllersWithViews();
 
-// 接続文字列（RenderのDATABASE_URL優先）
+// 接続文字列（DefaultConnection優先）
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? Environment.GetEnvironmentVariable("DATABASE_URL");
 
 if (string.IsNullOrWhiteSpace(connectionString))
